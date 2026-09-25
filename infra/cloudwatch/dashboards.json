@@ -1,0 +1,126 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "ReturnFlow/ReverseLogistics", "ReturnCreated", "ServiceName", "returnflow-backend", { "stat": "Sum", "color": "#6366f1" } ],
+          [ ".", "ReturnApproved", ".", ".", { "stat": "Sum", "color": "#10b981" } ],
+          [ ".", "ReturnRejected", ".", ".", { "stat": "Sum", "color": "#f43f5e" } ],
+          [ ".", "LabelGenerated", ".", ".", { "stat": "Sum", "color": "#06b6d4" } ],
+          [ ".", "RefundProcessed", ".", ".", { "stat": "Sum", "color": "#a855f7" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Reverse Logistics Return Lifecycle Throughput (§2)",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "ReturnFlow/ReverseLogistics", "CarrierScanProcessed", "Carrier", "UPS", { "stat": "Sum", "color": "#f59e0b" } ],
+          [ ".", "CarrierScanFailed", "Carrier", "UPS", { "stat": "Sum", "color": "#ef4444" } ],
+          [ ".", "InvalidStateTransition", "ServiceName", "returnflow-backend", { "stat": "Sum", "color": "#e11d48" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Carrier Webhooks & State Machine Security Boundary (§2 Phase 4)",
+        "period": 300
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "returnflow-label-queue", { "stat": "Average", "color": "#3b82f6" } ],
+          [ ".", "ApproximateNumberOfMessagesNotVisible", ".", ".", { "stat": "Average", "color": "#8b5cf6" } ],
+          [ ".", "ApproximateNumberOfMessagesVisible", "QueueName", "returnflow-label-dlq", { "stat": "Maximum", "color": "#dc2626" } ],
+          [ ".", "ApproximateNumberOfMessagesVisible", "QueueName", "returnflow-refund-queue", { "stat": "Average", "color": "#14b8a6" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "SQS Async Worker Queues & Dead-Letter Backlog (§1.2 & §4.5)",
+        "period": 60
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "app/returnflow-alb/1234567890", { "stat": "p95", "color": "#0ea5e9" } ],
+          [ ".", "HTTPCode_Target_5XX_Count", ".", ".", { "stat": "Sum", "color": "#e11d48" } ],
+          [ ".", "HTTPCode_Target_2XX_Count", ".", ".", { "stat": "Sum", "color": "#10b981" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "ALB Target Latency (p95) & HTTP Status Codes (§6)",
+        "period": 60
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/ECS", "CPUUtilization", "ServiceName", "returnflow-backend-service", "ClusterName", "returnflow-cluster", { "stat": "Average", "color": "#6366f1" } ],
+          [ ".", "MemoryUtilization", ".", ".", ".", ".", { "stat": "Average", "color": "#ec4899" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "ECS Fargate Resource Utilization (0.25 vCPU / 0.5 GB Task) (§2)",
+        "period": 60,
+        "yAxis": {
+          "left": {
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 12,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/States", "ExecutionsSucceeded", "StateMachineArn", "arn:aws:states:us-east-1:123456789012:stateMachine:returnflow-label-generation", { "stat": "Sum", "color": "#10b981" } ],
+          [ ".", "ExecutionsFailed", ".", ".", { "stat": "Sum", "color": "#ef4444" } ],
+          [ ".", "ExecutionsTimedOut", ".", ".", { "stat": "Sum", "color": "#f97316" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "AWS Step Functions Label-Generation Execution Success Rate (§1.6)",
+        "period": 300
+      }
+    }
+  ]
+}
