@@ -85,4 +85,10 @@ router.post(
   returnsController.getUploadUrl.bind(returnsController)
 );
 
+// S3 presigned GET download URL for generated shipping label PDF (§4.6)
+router.get(
+  '/:id/label-url',
+  returnsController.getLabelUrl.bind(returnsController)
+);
+
 export const returnRoutes = router;

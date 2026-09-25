@@ -14,6 +14,7 @@ export function rateLimit(options) {
 
       res.setHeader('X-RateLimit-Limit', maxRequests);
       res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - currentCount));
+      res.setHeader('X-RateLimit-Reset', Math.floor(Date.now() / 1000) + windowSeconds);
 
       if (currentCount > maxRequests) {
         res.setHeader('Retry-After', windowSeconds);

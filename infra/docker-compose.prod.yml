@@ -1,0 +1,89 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: returnflow-backend-prod
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - MONGO_URI=mongodb://mongo:27017/returnflow
+      - REDIS_URL=redis://redis:6379
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-returnflow-returns-bucket}
+      - SQS_LABEL_QUEUE_URL=${SQS_LABEL_QUEUE_URL}
+      - SQS_REFUND_QUEUE_URL=${SQS_REFUND_QUEUE_URL}
+      - SNS_TOPIC_ARN=${SNS_TOPIC_ARN}
+      - OPENSEARCH_ENDPOINT=${OPENSEARCH_ENDPOINT}
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - returnflow-prod-net
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: returnflow-frontend-prod
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api}
+    depends_on:
+      - backend
+    networks:
+      - returnflow-prod-net
+
+  mongo:
+    image: mongo:7
+    container_name: returnflow-mongo-prod
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-prod-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - returnflow-prod-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: returnflow-redis-prod
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-prod-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - returnflow-prod-net
+
+volumes:
+  mongo-prod-data:
+  redis-prod-data:
+
+networks:
+  returnflow-prod-net:
+    driver: bridge

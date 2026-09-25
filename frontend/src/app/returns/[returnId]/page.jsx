@@ -24,10 +24,13 @@ import { Card } from '../../../components/ui/Card.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { ReturnStatusBadge } from '../../../components/returns/ReturnStatusBadge.jsx';
 import { StateMachineVisualizer } from '../../../components/returns/StateMachineVisualizer.jsx';
+import { StepFunctionsVisualizer } from '../../../components/returns/StepFunctionsVisualizer.jsx';
 import { ApproveButton } from '../../../components/returns/ApproveButton.jsx';
 import { RejectModal } from '../../../components/returns/RejectModal.jsx';
 import { ReceiveButton } from '../../../components/returns/ReceiveButton.jsx';
 import { RefundButton } from '../../../components/returns/RefundButton.jsx';
+import { LabelDownloadButton } from '../../../components/returns/LabelDownloadButton.jsx';
+import { PhotoUpload } from '../../../components/returns/PhotoUpload.jsx';
 
 export default function ReturnDetailPage() {
   const { returnId } = useParams();
@@ -156,6 +159,10 @@ export default function ReturnDetailPage() {
                   <RefundButton returnId={ret._id} amount={ret.refundAmount} />
                 )}
 
+                {ret.labelKey && (
+                  <LabelDownloadButton returnId={ret._id} labelKey={ret.labelKey} />
+                )}
+
                 {ret.status === 'REFUNDED' && (
                   <div
                     style={{
@@ -179,6 +186,9 @@ export default function ReturnDetailPage() {
               currentStatus={ret.status}
               rejectionReason={ret.rejectionReason}
             />
+
+            {/* Step Functions Sub-flow Visualizer (§1.6) */}
+            <StepFunctionsVisualizer status={ret.status} />
 
             {/* Main Content Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
@@ -271,13 +281,13 @@ export default function ReturnDetailPage() {
                 </Card>
 
                 {/* Return Evidence Photos */}
-                {ret.evidencePhotos && ret.evidencePhotos.length > 0 && (
-                  <Card>
-                    <h3 className="title-display" style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Camera size={18} color="var(--primary)" />
-                      Uploaded Return Evidence (S3 Private Objects)
-                    </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
+                <Card>
+                  <h3 className="title-display" style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Camera size={18} color="var(--primary)" />
+                    Uploaded Return Evidence (S3 Private Objects)
+                  </h3>
+                  {ret.evidencePhotos && ret.evidencePhotos.length > 0 ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
                       {ret.evidencePhotos.map((photoKey, idx) => (
                         <div
                           key={idx}
@@ -296,8 +306,18 @@ export default function ReturnDetailPage() {
                         </div>
                       ))}
                     </div>
-                  </Card>
-                )}
+                  ) : (
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                      No photo evidence uploaded yet.
+                    </p>
+                  )}
+                  {ret.status === 'PENDING_REVIEW' && (
+                    <PhotoUpload
+                      returnId={ret._id}
+                      onUploadSuccess={() => dispatch(fetchReturnById(returnId))}
+                    />
+                  )}
+                </Card>
               </div>
 
               {/* Right Column: Customer Details & Timeline */}
@@ -322,11 +342,14 @@ export default function ReturnDetailPage() {
                       <span style={{ color: '#818cf8', fontWeight: 600 }}>{ret.orderNumber}</span>
                     </div>
                     {ret.labelKey && (
-                      <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
-                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Shipping Label</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', wordBreak: 'break-all' }}>
-                          {ret.labelKey}
-                        </span>
+                      <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div>
+                          <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Shipping Label (S3 Object)</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', wordBreak: 'break-all' }}>
+                            {ret.labelKey}
+                          </span>
+                        </div>
+                        <LabelDownloadButton returnId={ret._id} labelKey={ret.labelKey} />
                       </div>
                     )}
                   </div>

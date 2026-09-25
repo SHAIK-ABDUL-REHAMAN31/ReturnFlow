@@ -98,6 +98,16 @@ export class ReturnsController {
       next(err);
     }
   }
+
+  async getLabelUrl(req, res, next) {
+    try {
+      const { id } = req.params;
+      const result = await returnsService.getPresignedLabelDownloadUrl(id);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const returnsController = new ReturnsController();

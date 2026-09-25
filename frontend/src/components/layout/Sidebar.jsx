@@ -3,11 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Inbox, ShoppingBag, ShieldCheck, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, Inbox, ShoppingBag, ShieldCheck, PlusCircle, Search, BarChart3 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/returns', label: 'Returns Queue', icon: Inbox },
+  { href: '/search', label: 'OpenSearch Query', icon: Search },
+  { href: '/analytics', label: 'Logistics Analytics', icon: BarChart3 },
   { href: '/returns/new', label: 'Submit Return', icon: PlusCircle },
 ];
 
