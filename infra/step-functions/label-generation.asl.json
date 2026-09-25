@@ -1,0 +1,87 @@
+{
+  "Comment": "ReturnFlow Label Generation and Notification Visual Workflow",
+  "StartAt": "ValidateReturn",
+  "States": {
+    "ValidateReturn": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:123456789012:function:returnflow-validate-return",
+        "Payload.$": "$"
+      },
+      "Next": "GenerateLabel",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "NotifyFailure"
+        }
+      ]
+    },
+    "GenerateLabel": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:123456789012:function:returnflow-generate-label",
+        "Payload.$": "$"
+      },
+      "Next": "UploadToS3",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "NotifyFailure"
+        }
+      ]
+    },
+    "UploadToS3": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:123456789012:function:returnflow-upload-s3",
+        "Payload.$": "$"
+      },
+      "Next": "UpdateStatus",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "NotifyFailure"
+        }
+      ]
+    },
+    "UpdateStatus": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:123456789012:function:returnflow-update-status",
+        "Payload.$": "$"
+      },
+      "Next": "Notify",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "NotifyFailure"
+        }
+      ]
+    },
+    "Notify": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:returnflow-notifications",
+        "Message.$": "$"
+      },
+      "End": true
+    },
+    "NotifyFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:returnflow-notifications",
+        "Message": {
+          "event": "LABEL_GENERATION_FAILED",
+          "details.$": "$"
+        }
+      },
+      "End": true
+    }
+  }
+}

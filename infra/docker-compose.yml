@@ -1,0 +1,79 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: returnflow-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - MONGO_URI=mongodb://mongo:27017/returnflow
+      - REDIS_URL=redis://redis:6379
+      - JWT_ACCESS_SECRET=local_dev_access_secret_min_32_characters_long_12345
+      - JWT_REFRESH_SECRET=local_dev_refresh_secret_min_32_characters_long_12345
+      - AWS_REGION=us-east-1
+      - S3_BUCKET_NAME=returnflow-demo-bucket
+      - SQS_LABEL_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/000000000000/mock-label-queue
+      - SQS_REFUND_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/000000000000/mock-refund-queue
+      - SNS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:mock-notifications
+      - OPENSEARCH_ENDPOINT=https://localhost:9200
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - returnflow-net
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: returnflow-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api
+    depends_on:
+      - backend
+    networks:
+      - returnflow-net
+
+  mongo:
+    image: mongo:7
+    container_name: returnflow-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - returnflow-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: returnflow-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - returnflow-net
+
+volumes:
+  mongo-data:
+
+networks:
+  returnflow-net:
+    driver: bridge

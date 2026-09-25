@@ -1,0 +1,32 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 4 * * 1' # Weekly Monday at 4am UTC
+
+jobs:
+  trivy-and-audit:
+    name: Dependency & Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Backend Audit
+        run: |
+          cd backend
+          npm ci || npm install --package-lock-only
+          npm audit --audit-level=high
+
+      - name: Frontend Audit
+        run: |
+          cd frontend
+          npm ci || npm install --package-lock-only
+          npm audit --audit-level=high
