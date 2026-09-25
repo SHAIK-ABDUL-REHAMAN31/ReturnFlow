@@ -1,6 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { SQSClient } from '@aws-sdk/client-sqs';
 import { SNSClient } from '@aws-sdk/client-sns';
+import { SFNClient } from '@aws-sdk/client-sfn';
 import { env } from './env.js';
 
 // AWS SDK v3 clients instantiated as singletons using environment region.
@@ -14,5 +15,9 @@ export const sqsClient = new SQSClient({
 });
 
 export const snsClient = new SNSClient({
+  region: env.AWS_REGION,
+});
+
+export const sfnClient = new SFNClient({
   region: env.AWS_REGION,
 });

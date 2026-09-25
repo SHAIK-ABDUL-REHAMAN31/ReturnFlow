@@ -8,6 +8,10 @@ import { rateLimit } from './middleware/rate-limit.middleware.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { orderRoutes } from './modules/orders/orders.routes.js';
 import { returnRoutes } from './modules/returns/returns.routes.js';
+import { searchRoutes } from './modules/search/search.routes.js';
+import { webhookRoutes } from './modules/webhooks/carrier.routes.js';
+import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
+import { demoRoutes } from './modules/demo/demo.routes.js';
 
 export const app = express();
 
@@ -44,8 +48,15 @@ app.use(
   })
 );
 
-// 3. Body Parsing with safe limit (§5.2)
-app.use(express.json({ limit: '1mb' }));
+// 3. Body Parsing with safe limit and raw body preservation for HMAC verification (§5.2)
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      req.rawBody = buf.toString('utf-8');
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
@@ -71,6 +82,10 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/returns', returnRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/webhooks', webhookRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/demo', demoRoutes);
 
 // 7. 404 Route Handler
 app.use((req, res) => {

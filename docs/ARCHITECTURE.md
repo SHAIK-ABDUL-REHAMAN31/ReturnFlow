@@ -70,3 +70,16 @@ Any invalid transition triggers a standardized `AppError(409, 'INVALID_STATE_TRA
 - **Amazon S3:** Private bucket for customer photos (via presigned PUT URLs) and generated shipping label PDFs.
 - **Amazon SQS:** Decouples heavy operations (PDF label generation, payment gateway refunds) from API request cycles.
 - **Amazon SNS:** Broadcasts real-time events (`return.created`, `return.approved`, `label.ready`, `refund.completed`).
+- **AWS Step Functions:** Orchestrates visual label-generation state machine (`ValidateReturn` -> `GenerateLabel` -> `UploadToS3` -> `UpdateStatus` -> `Notify`).
+- **Amazon OpenSearch:** Parameterized multi-match search engine with automatic MongoDB regex fallback.
+- **Carrier Webhook Gateway:** Public receiver endpoint (`/api/webhooks/carrier`) verifying HMAC SHA-256 signatures via raw byte preservation (`req.rawBody`) before state transitions.
+- **Amazon CloudWatch:** Real-time observability via Embedded Metric Format (EMF) stdout logs and pre-configured production alarms.
+
+---
+
+## 4. Technology Stack & Security Constraints
+
+- **Language & Runtime:** Pure JavaScript (Node.js 22 ESM / Next.js 16 Turbopack JSX). Zero TypeScript files.
+- **Infrastructure Management:** Docker Compose (local & production), ECS Fargate task definitions, GitHub Actions CD workflows. Zero Terraform dependencies.
+- **Zero Vulnerabilities:** Continuously audited (`npm audit` reports 0 vulnerabilities across all dependencies).
+- **Automated Smoke Testing:** End-to-end multi-step verification via `npm run test:smoke` (`scripts/smoke-test.js`).

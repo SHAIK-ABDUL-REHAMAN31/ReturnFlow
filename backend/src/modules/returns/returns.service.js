@@ -4,8 +4,10 @@ import { assertValidTransition } from './returns.state-machine.js';
 import { s3Service } from '../../lib/s3-client.js';
 import { sqsService } from '../../lib/sqs-client.js';
 import { snsService } from '../../lib/sns-client.js';
+import { stepFunctionsService } from '../../lib/stepfunctions-client.js';
 import { Errors } from '../../lib/app-error.js';
 import { logger } from '../../lib/logger.js';
+import { metrics } from '../../lib/metrics.js';
 
 export class ReturnsService {
   async createReturnRequest(dto, user) {
@@ -91,6 +93,12 @@ export class ReturnsService {
       action: 'GENERATE_LABEL',
       timestamp: new Date().toISOString(),
     });
+
+    // Orchestrate visual state machine via AWS Step Functions (§1.6 Phase 4)
+    await stepFunctionsService.startLabelGenerationExecution(
+      returnDoc._id.toString(),
+      returnDoc.returnNumber
+    );
 
     await snsService.publish('return.approved', {
       returnId: returnDoc._id.toString(),
@@ -248,6 +256,27 @@ export class ReturnsService {
 
   async getDashboardMetrics() {
     return returnsRepository.getMetrics();
+  }
+
+  /**
+   * Generates a time-limited presigned GET URL for downloading shipping label PDF (§4.6)
+   */
+  async getPresignedLabelDownloadUrl(returnId) {
+    const returnDoc = await returnsRepository.findById(returnId);
+    if (!returnDoc) {
+      throw Errors.notFound('Return request');
+    }
+
+    if (!returnDoc.labelKey) {
+      throw Errors.badRequest('No shipping label has been generated for this return yet');
+    }
+
+    const downloadUrl = await s3Service.getPresignedDownloadUrl(returnDoc.labelKey, 300);
+    return {
+      downloadUrl,
+      labelKey: returnDoc.labelKey,
+      returnNumber: returnDoc.returnNumber,
+    };
   }
 }
 

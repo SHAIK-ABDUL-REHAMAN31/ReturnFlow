@@ -14,6 +14,7 @@ const envSchema = z.object({
   SQS_REFUND_QUEUE_URL: z.string().url().or(z.string().min(1)),
   SNS_TOPIC_ARN: z.string().min(1).default('arn:aws:sns:us-east-1:123456789012:returnflow-notifications'),
   OPENSEARCH_ENDPOINT: z.string().url().or(z.string().min(1)).default('https://localhost:9200'),
+  STEP_FUNCTIONS_LABEL_ARN: z.string().optional().default('arn:aws:states:us-east-1:123456789012:stateMachine:returnflow-label-generation'),
   FRONTEND_URL: z.string().url().or(z.string().min(1)).default('http://localhost:3000'),
 });
 

@@ -17,6 +17,7 @@ import { RETURN_REASONS } from '../../../lib/validators/return.schema.js';
 import { Card } from '../../../components/ui/Card.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { Input } from '../../../components/ui/Input.jsx';
+import { PhotoUpload } from '../../../components/returns/PhotoUpload.jsx';
 
 export default function NewReturnPortalPage() {
   const router = useRouter();
@@ -200,10 +201,14 @@ export default function NewReturnPortalPage() {
                   fontSize: '1.25rem',
                   fontWeight: 700,
                   color: '#818cf8',
-                  marginBottom: '2rem',
+                  marginBottom: '1.5rem',
                 }}
               >
                 {createdReturn.returnNumber}
+              </div>
+
+              <div style={{ maxWidth: '480px', margin: '0 auto 2rem', textAlign: 'left' }}>
+                <PhotoUpload returnId={createdReturn._id} />
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>

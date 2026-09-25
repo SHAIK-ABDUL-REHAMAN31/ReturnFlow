@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RefreshCw, LogOut, ExternalLink, ShieldCheck } from 'lucide-react';
 import { logoutUser } from '../../features/auth/authSlice.js';
 import { Button } from '../ui/Button.jsx';
+import { DemoBar } from './DemoBar.jsx';
 
 export function Navbar() {
   const router = useRouter();
@@ -19,8 +20,10 @@ export function Navbar() {
   };
 
   return (
-    <header
-      style={{
+    <>
+      <DemoBar />
+      <header
+        style={{
         height: '68px',
         borderBottom: '1px solid var(--border-subtle)',
         background: 'rgba(15, 23, 42, 0.85)',
@@ -145,5 +148,6 @@ export function Navbar() {
         )}
       </div>
     </header>
+  </>
   );
 }

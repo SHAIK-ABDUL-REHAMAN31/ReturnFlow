@@ -2,6 +2,7 @@ import { app } from './app.js';
 import { env } from './config/env.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { cacheService } from './lib/cache.service.js';
+import { startWorkerLoops, stopWorkerLoops } from './workers/worker-runner.js';
 import { logger } from './lib/logger.js';
 
 let server;
@@ -11,7 +12,10 @@ async function bootstrap() {
     // 1. Connect to MongoDB
     await connectDB();
 
-    // 2. Start HTTP Listener
+    // 2. Start SQS background worker loops (§1.3, §4.5)
+    await startWorkerLoops();
+
+    // 3. Start HTTP Listener
     server = app.listen(env.PORT, () => {
       logger.info(
         { port: env.PORT, env: env.NODE_ENV },
@@ -28,6 +32,7 @@ async function gracefulShutdown(signal) {
   logger.info({ signal }, 'Received termination signal, starting graceful shutdown');
 
   if (server) {
+    stopWorkerLoops();
     server.close(async () => {
       logger.info('HTTP server closed');
       await disconnectDB();
