@@ -19,31 +19,30 @@ export function Sidebar() {
   return (
     <aside
       style={{
-        width: '260px',
-        borderRight: '1px solid var(--border-subtle)',
-        backgroundColor: 'rgba(15, 23, 42, 0.5)',
-        backdropFilter: 'blur(12px)',
+        width: '240px',
+        borderRight: '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-bg-subtle)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '1.5rem 1rem',
+        padding: '20px 16px',
       }}
     >
       <div>
         <div
           style={{
-            fontSize: '0.6875rem',
-            fontWeight: 700,
+            fontSize: '11px',
+            fontWeight: 500,
             textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: 'var(--text-muted)',
-            padding: '0 0.75rem',
-            marginBottom: '0.75rem',
+            letterSpacing: '0.06em',
+            color: 'var(--color-text-muted)',
+            padding: '0 12px',
+            marginBottom: '12px',
           }}
         >
           Merchant Console
         </div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -58,18 +57,18 @@ export function Sidebar() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.65rem 0.85rem',
+                  gap: '10px',
+                  padding: '10px 12px',
                   borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                  backgroundColor: isActive ? 'var(--primary)' : 'transparent',
-                  boxShadow: isActive ? '0 2px 10px rgba(99, 102, 241, 0.3)' : 'none',
-                  transition: 'all 0.15s ease',
+                  fontSize: '14px',
+                  fontWeight: isActive ? 500 : 400,
+                  color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                  backgroundColor: isActive ? 'var(--color-bg)' : 'transparent',
+                  borderLeft: isActive ? '3px solid var(--color-accent)' : '3px solid transparent',
+                  transition: 'all 180ms cubic-bezier(0.2, 0.8, 0.2, 1)',
                 }}
               >
-                <Icon size={18} />
+                <Icon size={18} strokeWidth={1.75} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -78,20 +77,20 @@ export function Sidebar() {
       </div>
 
       <div
-        className="glass-panel"
         style={{
-          padding: '1rem',
-          backgroundColor: 'rgba(30, 41, 59, 0.4)',
-          border: '1px solid var(--border-subtle)',
+          padding: '16px',
+          backgroundColor: 'var(--color-bg)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <ShieldCheck size={16} color="#10b981" />
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <ShieldCheck size={16} color="var(--color-success)" strokeWidth={1.75} />
+          <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
             State Machine Engine
           </span>
         </div>
-        <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.45' }}>
           Deterministic transitions enforced strictly per reverse logistics specification.
         </p>
       </div>

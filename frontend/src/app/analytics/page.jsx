@@ -52,22 +52,22 @@ export default function AnalyticsPage() {
             {/* Header */}
             <div style={{ marginBottom: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                <BarChart3 size={24} color="#818cf8" />
-                <h1 className="title-display gradient-text" style={{ fontSize: '2rem' }}>
+                <BarChart3 size={24} color="var(--color-primary)" />
+                <h1 className="title-display" style={{ fontSize: '2rem' }}>
                   Reverse Logistics Analytics & Intelligence
                 </h1>
               </div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9375rem' }}>
                 Actionable post-purchase intelligence, defect rates, and turnaround efficiency
               </p>
             </div>
 
             {loading ? (
-              <Card style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <Card style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                 Aggregating reverse logistics metrics...
               </Card>
             ) : error ? (
-              <Card style={{ padding: '2rem', textAlign: 'center', color: 'var(--accent-rose)' }}>
+              <Card style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-error)' }}>
                 {error}
               </Card>
             ) : !data ? (
@@ -84,34 +84,34 @@ export default function AnalyticsPage() {
                   }}
                 >
                   <Card className="metric-card">
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
                       Avg Resolution Time
                     </span>
-                    <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>
+                    <div className="title-display" style={{ fontSize: '2rem', fontWeight: 500, color: 'var(--color-info)' }}>
                       {data.resolutionStats.avgHours} hrs
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                       Range: {data.resolutionStats.minHours}h min – {data.resolutionStats.maxHours}h max
                     </span>
                   </Card>
 
                   <Card className="metric-card">
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
                       Total Return Claims
                     </span>
-                    <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800 }}>
+                    <div className="title-display" style={{ fontSize: '2rem', fontWeight: 500 }}>
                       {data.totalReturns}
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                       Across all sales channels
                     </span>
                   </Card>
 
                   <Card className="metric-card">
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
                       Completed Refunds
                     </span>
-                    <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent-emerald)' }}>
+                    <div className="title-display" style={{ fontSize: '2rem', fontWeight: 500, color: 'var(--color-success)' }}>
                       {data.statusCounts.REFUNDED || 0}
                     </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-emerald)' }}>
@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
                   {/* Reasons Breakdown */}
                   <Card>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                      <PieChart size={18} color="var(--primary)" />
+                      <PieChart size={18} color="var(--color-primary)" />
                       <h3 className="title-display" style={{ fontSize: '1.125rem' }}>
                         Return Reasons Distribution
                       </h3>
@@ -144,15 +144,15 @@ export default function AnalyticsPage() {
                                 marginBottom: '0.35rem',
                               }}
                             >
-                              <span style={{ fontWeight: 600 }}>{r.reason.replace(/_/g, ' ')}</span>
-                              <span style={{ color: 'var(--text-secondary)' }}>
+                              <span style={{ fontWeight: 500 }}>{r.reason.replace(/_/g, ' ')}</span>
+                              <span style={{ color: 'var(--color-text-secondary)' }}>
                                 {r.count} claims ({r.percentage}%)
                               </span>
                             </div>
                             <div
                               style={{
                                 height: '8px',
-                                backgroundColor: 'var(--bg-surface-elevated)',
+                                backgroundColor: 'var(--color-bg-muted)',
                                 borderRadius: '4px',
                                 overflow: 'hidden',
                               }}
@@ -178,13 +178,13 @@ export default function AnalyticsPage() {
                     <div
                       style={{
                         padding: '1.25rem 1.5rem',
-                        borderBottom: '1px solid var(--border-subtle)',
+                        borderBottom: '1px solid var(--color-border-subtle)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.5rem',
                       }}
                     >
-                      <ShoppingBag size={18} color="var(--primary)" />
+                      <ShoppingBag size={18} color="var(--color-primary)" />
                       <h3 className="title-display" style={{ fontSize: '1.125rem' }}>
                         Highest Return Frequency SKUs
                       </h3>
@@ -194,8 +194,8 @@ export default function AnalyticsPage() {
                       <thead>
                         <tr
                           style={{
-                            borderBottom: '1px solid var(--border-subtle)',
-                            color: 'var(--text-muted)',
+                            borderBottom: '1px solid var(--color-border-subtle)',
+                            color: 'var(--color-text-muted)',
                             fontSize: '0.75rem',
                             textTransform: 'uppercase',
                           }}
@@ -207,17 +207,17 @@ export default function AnalyticsPage() {
                       </thead>
                       <tbody>
                         {data.topSkus.map((skuItem) => (
-                          <tr key={skuItem.sku} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <tr key={skuItem.sku} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                             <td style={{ padding: '0.85rem 1.5rem' }}>
-                              <div style={{ fontWeight: 600 }}>{skuItem.name}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              <div style={{ fontWeight: 500 }}>{skuItem.name}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                                 {skuItem.sku}
                               </div>
                             </td>
-                            <td style={{ padding: '0.85rem 1.5rem', textAlign: 'center', fontWeight: 600 }}>
+                            <td style={{ padding: '0.85rem 1.5rem', textAlign: 'center', fontWeight: 500 }}>
                               {skuItem.returnCount}
                             </td>
-                            <td style={{ padding: '0.85rem 1.5rem', textAlign: 'right', fontWeight: 600 }}>
+                            <td style={{ padding: '0.85rem 1.5rem', textAlign: 'right', fontWeight: 500 }}>
                               ${skuItem.totalValue?.toFixed(2) || '0.00'}
                             </td>
                           </tr>

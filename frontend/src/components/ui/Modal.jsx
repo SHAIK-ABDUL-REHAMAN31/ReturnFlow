@@ -56,7 +56,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '540px' }) 
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid var(--border-subtle)',
+            borderBottom: '1px solid var(--color-border-subtle)',
           }}
         >
           <h3 className="title-display" style={{ fontSize: '1.125rem' }}>
@@ -67,7 +67,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '540px' }) 
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--text-muted)',
+              color: 'var(--color-text-muted)',
               cursor: 'pointer',
               padding: '0.25rem',
               display: 'flex',

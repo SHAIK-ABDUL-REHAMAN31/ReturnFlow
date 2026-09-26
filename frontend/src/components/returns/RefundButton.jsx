@@ -48,7 +48,7 @@ export function RefundButton({ returnId, amount, onRefunded }) {
         Issue Refund (${amount?.toFixed(2) || '0.00'})
       </Button>
       {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--accent-rose)' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--color-error)' }}>
           {error}
         </span>
       )}

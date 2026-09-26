@@ -7,7 +7,7 @@
     "Dimensions": [
       {
         "Name": "LoadBalancer",
-        "Value": "app/returnflow-alb/1234567890"
+        "Value": "app/returnflow-alb/08c78a40c7d92900"
       }
     ],
     "Statistic": "Sum",
@@ -61,7 +61,7 @@
     "Dimensions": [
       {
         "Name": "StateMachineArn",
-        "Value": "arn:aws:states:us-east-1:123456789012:stateMachine:returnflow-label-generation"
+        "Value": "arn:aws:states:us-east-1:006635110818:stateMachine:returnflow-label-generation"
       }
     ],
     "Statistic": "Sum",

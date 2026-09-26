@@ -1,0 +1,54 @@
+{
+  "family": "returnflow-backend-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::006635110818:role/returnflow-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::006635110818:role/returnflow-ecs-task-role",
+  "containerDefinitions": [
+    {
+      "name": "returnflow-backend",
+      "image": "006635110818.dkr.ecr.us-east-1.amazonaws.com/returnflow-backend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 4000,
+          "hostPort": 4000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "PORT", "value": "4000" },
+        { "name": "MONGO_URI", "value": "mongodb+srv://<DB_USER>:<DB_PASSWORD>@returnflow.fl4tbwp.mongodb.net/returnflow?retryWrites=true&w=majority&appName=ReturnFlow" },
+        { "name": "JWT_ACCESS_SECRET", "value": "local_dev_access_secret_min_32_characters_long_12345" },
+        { "name": "JWT_REFRESH_SECRET", "value": "local_dev_refresh_secret_min_32_characters_long_12345" },
+        { "name": "REDIS_URL", "value": "redis://localhost:6379" },
+        { "name": "AWS_REGION", "value": "us-east-1" },
+        { "name": "S3_BUCKET_NAME", "value": "returnflow-abdul-bucket" },
+        { "name": "SQS_LABEL_QUEUE_URL", "value": "https://sqs.us-east-1.amazonaws.com/006635110818/returnflow-label-queue" },
+        { "name": "SQS_REFUND_QUEUE_URL", "value": "https://sqs.us-east-1.amazonaws.com/006635110818/returnflow-refund-queue" },
+        { "name": "SNS_TOPIC_ARN", "value": "arn:aws:sns:us-east-1:006635110818:returnflow-notifications" },
+        { "name": "OPENSEARCH_ENDPOINT", "value": "https://localhost:9200" },
+        { "name": "STEP_FUNCTIONS_LABEL_ARN", "value": "arn:aws:states:us-east-1:006635110818:stateMachine:returnflow-label-generation" },
+        { "name": "FRONTEND_URL", "value": "http://localhost:3000" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/returnflow-backend",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 15
+      }
+    }
+  ]
+}

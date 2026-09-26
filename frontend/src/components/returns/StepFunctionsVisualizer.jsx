@@ -31,8 +31,8 @@ export function StepFunctionsVisualizer({ status }) {
             padding: '0.2rem 0.5rem',
             borderRadius: '4px',
             backgroundColor: isWorkflowTriggered ? 'rgba(16, 185, 129, 0.15)' : 'rgba(148, 163, 184, 0.1)',
-            color: isWorkflowTriggered ? '#10b981' : 'var(--text-muted)',
-            fontWeight: 600,
+            color: isWorkflowTriggered ? '#10b981' : 'var(--color-text-muted)',
+            fontWeight: 500,
           }}
         >
           {isWorkflowTriggered ? 'EXECUTION SUCCEEDED' : 'READY TO TRIGGER ON APPROVE'}
@@ -50,8 +50,8 @@ export function StepFunctionsVisualizer({ status }) {
                 style={{
                   padding: '0.65rem 0.85rem',
                   borderRadius: '8px',
-                  backgroundColor: isDone ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-surface-elevated)',
-                  border: `1px solid ${isDone ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-subtle)'}`,
+                  backgroundColor: isDone ? 'rgba(16, 185, 129, 0.08)' : 'var(--color-bg-muted)',
+                  border: `1px solid ${isDone ? 'rgba(16, 185, 129, 0.3)' : 'var(--color-border-subtle)'}`,
                   minWidth: '150px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -59,18 +59,18 @@ export function StepFunctionsVisualizer({ status }) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Icon size={14} color={isDone ? '#10b981' : 'var(--text-muted)'} />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: isDone ? '#10b981' : 'var(--text-secondary)' }}>
+                  <Icon size={14} color={isDone ? '#10b981' : 'var(--color-text-muted)'} />
+                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: isDone ? '#10b981' : 'var(--color-text-secondary)' }}>
                     {sfnState.id}
                   </span>
                 </div>
-                <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
                   {sfnState.desc}
                 </span>
               </div>
 
               {idx < SFN_STATES.length - 1 && (
-                <ArrowRight size={14} color={isDone ? '#10b981' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+                <ArrowRight size={14} color={isDone ? '#10b981' : 'var(--color-text-muted)'} style={{ flexShrink: 0 }} />
               )}
             </React.Fragment>
           );

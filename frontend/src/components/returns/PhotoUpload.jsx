@@ -82,14 +82,14 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
 
   return (
     <div style={{ marginTop: '1rem' }}>
-      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
         Attach Proof / Condition Photo (Direct to S3 via Presigned URL §1.1)
       </div>
 
       {!preview ? (
         <label
           style={{
-            border: '2px dashed var(--border-subtle)',
+            border: '2px dashed var(--color-border-subtle)',
             borderRadius: '8px',
             padding: '1.5rem',
             display: 'flex',
@@ -98,12 +98,12 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
             justifyContent: 'center',
             gap: '0.5rem',
             cursor: 'pointer',
-            backgroundColor: 'var(--bg-surface-elevated)',
+            backgroundColor: 'var(--color-bg-muted)',
             transition: 'border-color 0.2s ease',
           }}
         >
-          <Camera size={24} color="var(--text-muted)" />
-          <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+          <Camera size={24} color="var(--color-text-muted)" />
+          <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
             Click to upload damage photo or evidence (Max 5MB)
           </span>
           <input
@@ -118,8 +118,8 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
           style={{
             padding: '1rem',
             borderRadius: '8px',
-            backgroundColor: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-subtle)',
+            backgroundColor: 'var(--color-bg-muted)',
+            border: '1px solid var(--color-border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -132,8 +132,8 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
               style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px' }}
             />
             <div>
-              <div style={{ fontSize: '0.8125rem', fontWeight: 600 }}>{file?.name}</div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 500 }}>{file?.name}</div>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)' }}>
                 {(file?.size / (1024 * 1024)).toFixed(2)} MB
               </div>
             </div>
@@ -148,7 +148,7 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
                   gap: '0.35rem',
                   fontSize: '0.75rem',
                   color: '#10b981',
-                  fontWeight: 600,
+                  fontWeight: 500,
                 }}
               >
                 <Check size={14} />
@@ -162,11 +162,11 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
                 style={{
                   padding: '0.45rem 0.85rem',
                   borderRadius: '6px',
-                  backgroundColor: 'var(--primary)',
+                  backgroundColor: 'var(--color-primary)',
                   color: '#ffffff',
                   border: 'none',
                   fontSize: '0.75rem',
-                  fontWeight: 600,
+                  fontWeight: 500,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -184,7 +184,7 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'var(--text-muted)',
+                color: 'var(--color-text-muted)',
                 cursor: 'pointer',
                 padding: '0.25rem',
               }}
@@ -196,7 +196,7 @@ export function PhotoUpload({ returnId, onUploadSuccess }) {
       )}
 
       {error && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--accent-rose)', fontSize: '0.75rem', marginTop: '0.4rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '0.4rem' }}>
           <AlertCircle size={14} />
           <span>{error}</span>
         </div>

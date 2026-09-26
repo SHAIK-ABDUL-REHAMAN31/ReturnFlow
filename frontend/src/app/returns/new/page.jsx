@@ -10,7 +10,6 @@ import {
   ArrowRight,
   RefreshCw,
   AlertTriangle,
-  Upload,
 } from 'lucide-react';
 import { apiFetch } from '../../../lib/api-client.js';
 import { RETURN_REASONS } from '../../../lib/validators/return.schema.js';
@@ -123,36 +122,60 @@ export default function NewReturnPortalPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+    <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg-subtle)' }}>
+      {/* Design System Header (§17 & §3.1) */}
       <header
         style={{
-          height: '68px',
-          borderBottom: '1px solid var(--border-subtle)',
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-          backdropFilter: 'blur(16px)',
+          height: '64px',
+          borderBottom: '1px solid var(--color-border-subtle)',
+          backgroundColor: 'var(--color-bg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 2rem',
+          padding: '0 32px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--color-text-on-dark)',
+              }}
+            >
+              <RefreshCw size={18} strokeWidth={1.75} />
+            </div>
+            <span
+              style={{
+                fontSize: '18px',
+                fontWeight: 500,
+                letterSpacing: '-0.01em',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              Return<span style={{ color: 'var(--color-primary)' }}>Flow</span>
+            </span>
+          </div>
+
+          <span
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
+              fontSize: '11px',
+              padding: '3px 8px',
+              borderRadius: '4px',
+              backgroundColor: 'var(--color-accent-soft)',
+              color: 'var(--color-text-on-accent)',
+              border: '1px solid var(--color-accent-border)',
+              fontWeight: 500,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
             }}
           >
-            <RefreshCw size={18} />
-          </div>
-          <span className="title-display" style={{ fontSize: '1.25rem', fontWeight: 700 }}>
             Customer Returns Portal
           </span>
         </div>
@@ -165,53 +188,70 @@ export default function NewReturnPortalPage() {
       </header>
 
       {/* Main Container */}
-      <main style={{ flex: 1, padding: '3rem 1.5rem', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '720px' }}>
+      <main style={{ flex: 1, padding: '48px 24px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: '640px' }}>
           {createdReturn ? (
             /* Success State */
-            <Card elevated style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+            <div
+              style={{
+                backgroundColor: 'var(--color-bg)',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: '12px',
+                padding: '48px 32px',
+                textAlign: 'center',
+                boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+              }}
+            >
               <div
                 style={{
-                  width: '64px',
-                  height: '64px',
+                  width: '56px',
+                  height: '56px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                  color: 'var(--accent-emerald)',
+                  backgroundColor: 'var(--color-success-soft)',
+                  color: 'var(--color-success)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 1.5rem',
+                  margin: '0 auto 20px',
                 }}
               >
-                <CheckCircle2 size={36} />
+                <CheckCircle2 size={32} />
               </div>
-              <h2 className="title-display" style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>
-                Return Request Submitted!
+              <h2
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 500,
+                  color: 'var(--color-text-primary)',
+                  letterSpacing: '-0.02em',
+                  marginBottom: '8px',
+                }}
+              >
+                Return Request Submitted
               </h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                Your request has entered the review pipeline. Tracking ID:
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
+                Your request has entered the automated review pipeline.
               </p>
               <div
                 style={{
                   display: 'inline-block',
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-subtle)',
+                  padding: '10px 20px',
+                  backgroundColor: 'var(--color-bg-muted)',
+                  border: '1px solid var(--color-border-subtle)',
                   borderRadius: '8px',
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  color: '#818cf8',
-                  marginBottom: '1.5rem',
+                  fontSize: '18px',
+                  fontWeight: 500,
+                  color: 'var(--color-primary)',
+                  marginBottom: '28px',
                 }}
               >
                 {createdReturn.returnNumber}
               </div>
 
-              <div style={{ maxWidth: '480px', margin: '0 auto 2rem', textAlign: 'left' }}>
+              <div style={{ maxWidth: '480px', margin: '0 auto 28px', textAlign: 'left' }}>
                 <PhotoUpload returnId={createdReturn._id} />
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                 <Link href={`/returns/${createdReturn._id}`}>
                   <Button variant="primary">Track Return Status</Button>
                 </Link>
@@ -225,20 +265,36 @@ export default function NewReturnPortalPage() {
                   Submit Another Return
                 </Button>
               </div>
-            </Card>
+            </div>
           ) : !eligibilityData ? (
             /* Step 1: Lookup Order */
             <div className="animate-fade-in">
-              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <h1 className="title-display gradient-text" style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+              <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                <h1
+                  style={{
+                    fontSize: '28px',
+                    fontWeight: 500,
+                    letterSpacing: '-0.02em',
+                    color: 'var(--color-text-primary)',
+                    marginBottom: '8px',
+                  }}
+                >
                   Start a Return or Exchange
                 </h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>
                   Enter your order number and customer email to check return eligibility.
                 </p>
               </div>
 
-              <Card elevated padding="2rem">
+              <div
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  borderRadius: '12px',
+                  padding: '32px',
+                  boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                }}
+              >
                 <form onSubmit={handleCheckEligibility}>
                   <Input
                     id="order-num"
@@ -262,16 +318,16 @@ export default function NewReturnPortalPage() {
                   {eligibilityError && (
                     <div
                       style={{
-                        padding: '0.85rem 1rem',
-                        backgroundColor: 'rgba(244, 63, 94, 0.12)',
-                        border: '1px solid rgba(244, 63, 94, 0.3)',
+                        padding: '12px 14px',
+                        backgroundColor: 'var(--color-error-soft)',
+                        border: '1px solid var(--color-error)',
                         borderRadius: '8px',
-                        color: 'var(--accent-rose)',
-                        fontSize: '0.8125rem',
-                        marginBottom: '1.25rem',
+                        color: 'var(--color-error)',
+                        fontSize: '13px',
+                        marginBottom: '20px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem',
+                        gap: '8px',
                       }}
                     >
                       <AlertTriangle size={16} />
@@ -283,24 +339,24 @@ export default function NewReturnPortalPage() {
                     type="submit"
                     variant="primary"
                     loading={checkingEligibility}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '42px', marginTop: '8px' }}
                     icon={Search}
                   >
                     Check Return Eligibility
                   </Button>
                 </form>
-              </Card>
+              </div>
             </div>
           ) : (
             /* Step 2: Select Items & Reasons */
             <div className="animate-fade-in">
-              <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h2 className="title-display" style={{ fontSize: '1.5rem' }}>
+                  <h2 style={{ fontSize: '22px', fontWeight: 500, color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
                     Select Items to Return
                   </h2>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                    Order: <strong>{eligibilityData.orderNumber}</strong> ({eligibilityData.customerName})
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px', marginTop: '2px' }}>
+                    Order: <strong style={{ color: 'var(--color-text-primary)' }}>{eligibilityData.orderNumber}</strong> ({eligibilityData.customerName})
                   </p>
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => setEligibilityData(null)}>
@@ -309,8 +365,17 @@ export default function NewReturnPortalPage() {
               </div>
 
               <form onSubmit={handleSubmitReturn}>
-                <Card style={{ marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    border: '1px solid var(--color-border-subtle)',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    marginBottom: '20px',
+                    boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {eligibilityData.eligibleItems.map((item) => {
                       const isSelected = !!selectedItems[item.sku];
                       return (
@@ -318,10 +383,10 @@ export default function NewReturnPortalPage() {
                           key={item.sku}
                           onClick={() => toggleItem(item)}
                           style={{
-                            padding: '1rem',
+                            padding: '14px 16px',
                             borderRadius: '8px',
-                            border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-subtle)'}`,
-                            backgroundColor: isSelected ? 'rgba(99, 102, 241, 0.08)' : 'var(--bg-surface-elevated)',
+                            border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border-subtle)'}`,
+                            backgroundColor: isSelected ? 'var(--color-accent-soft)' : 'var(--color-bg)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
@@ -329,39 +394,48 @@ export default function NewReturnPortalPage() {
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <div
                               style={{
                                 width: '20px',
                                 height: '20px',
                                 borderRadius: '4px',
-                                border: `2px solid ${isSelected ? 'var(--primary)' : 'var(--text-muted)'}`,
-                                backgroundColor: isSelected ? 'var(--primary)' : 'transparent',
+                                border: `1.5px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border-strong)'}`,
+                                backgroundColor: isSelected ? 'var(--color-primary)' : 'transparent',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                               }}
                             >
-                              {isSelected && <CheckCircle2 size={14} color="#ffffff" />}
+                              {isSelected && <CheckCircle2 size={13} color="#ffffff" />}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 600 }}>{item.name}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              <div style={{ fontWeight: 500, fontSize: '14px', color: 'var(--color-text-primary)' }}>{item.name}</div>
+                              <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>
                                 SKU: {item.sku} • Purchased: {item.quantity}
                               </div>
                             </div>
                           </div>
-                          <div style={{ fontWeight: 700, color: 'var(--accent-emerald)' }}>
+                          <div style={{ fontWeight: 500, fontSize: '14px', color: 'var(--color-text-primary)' }}>
                             ${item.price.toFixed(2)}
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </Card>
+                </div>
 
                 {/* Return Reason Selection */}
-                <Card style={{ marginBottom: '1.5rem' }}>
+                <div
+                  style={{
+                    backgroundColor: 'var(--color-bg)',
+                    border: '1px solid var(--color-border-subtle)',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    marginBottom: '20px',
+                    boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                  }}
+                >
                   <div className="form-group">
                     <label className="form-label" htmlFor="return-reason">
                       Reason for Return
@@ -373,7 +447,7 @@ export default function NewReturnPortalPage() {
                       onChange={(e) => setReason(e.target.value)}
                     >
                       {RETURN_REASONS.map((r) => (
-                        <option key={r} value={r} style={{ backgroundColor: '#0f172a' }}>
+                        <option key={r} value={r}>
                           {r.replace(/_/g, ' ')}
                         </option>
                       ))}
@@ -393,18 +467,18 @@ export default function NewReturnPortalPage() {
                       onChange={(e) => setCustomerNote(e.target.value)}
                     />
                   </div>
-                </Card>
+                </div>
 
                 {submitError && (
                   <div
                     style={{
-                      padding: '0.85rem 1rem',
-                      backgroundColor: 'rgba(244, 63, 94, 0.12)',
-                      border: '1px solid rgba(244, 63, 94, 0.3)',
+                      padding: '12px 14px',
+                      backgroundColor: 'var(--color-error-soft)',
+                      border: '1px solid var(--color-error)',
                       borderRadius: '8px',
-                      color: 'var(--accent-rose)',
-                      fontSize: '0.8125rem',
-                      marginBottom: '1.25rem',
+                      color: 'var(--color-error)',
+                      fontSize: '13px',
+                      marginBottom: '20px',
                     }}
                   >
                     {submitError}
@@ -415,7 +489,7 @@ export default function NewReturnPortalPage() {
                   type="submit"
                   variant="primary"
                   loading={submitting}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: '42px' }}
                   icon={ArrowRight}
                 >
                   Submit Return Request
