@@ -1,5 +1,9 @@
 # ReturnFlow — Reverse Logistics & E-Commerce Returns Platform
 
+> **Live Demo:** [https://return-flow-three.vercel.app](https://return-flow-three.vercel.app)  
+> **Live AWS Backend:** [http://returnflow-alb-2003286988.us-east-1.elb.amazonaws.com/health](http://returnflow-alb-2003286988.us-east-1.elb.amazonaws.com/health)  
+> **Demo Merchant Login:** `merchant@returnflow.io` / `Password123!` (one-click autofill on login screen)  
+>
 > **Production-grade, live AWS-hosted reverse logistics platform built with 100% Pure JavaScript (Node.js 22 ESM + React/Next.js 16).**  
 > Demonstrates full-lifecycle integration across 12 AWS services: **ECS/Fargate, Application Load Balancer (ALB), S3, SQS, SNS, ElastiCache (Redis), OpenSearch Service, Step Functions, CloudWatch, CloudFront, Secrets Manager, and IAM**.
 
