@@ -2,12 +2,13 @@ name: CD Frontend (S3 & CloudFront Deploy)
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -33,21 +34,24 @@ jobs:
 
       - name: Build Next.js Application
         env:
-          NEXT_PUBLIC_API_BASE_URL: https://${{ secrets.ALB_DNS_NAME }}/api
+          NEXT_PUBLIC_API_BASE_URL: http://returnflow-alb-2003286988.us-east-1.elb.amazonaws.com/api
         run: npm run build
 
-      - name: Configure AWS Credentials (OIDC §7)
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Sync Static Assets to S3
         run: |
-          aws s3 sync .next/static s3://${{ secrets.FRONTEND_S3_BUCKET }}/_next/static --delete
+          aws s3 sync .next/static s3://${{ secrets.FRONTEND_S3_BUCKET || 'returnflow-abdul-bucket' }}/_next/static --delete
 
       - name: Invalidate CloudFront Distribution Cache
+        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
+

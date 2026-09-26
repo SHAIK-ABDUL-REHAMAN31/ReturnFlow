@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { RefreshCw, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
+import { RefreshCw, ArrowRight, Sparkles } from 'lucide-react';
 import { loginUser } from '../../../features/auth/authSlice.js';
 import { Card } from '../../../components/ui/Card.jsx';
 import { Input } from '../../../components/ui/Input.jsx';
@@ -39,36 +39,36 @@ export default function LoginPage() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        padding: '2rem',
+        padding: '32px',
+        backgroundColor: 'var(--color-bg-subtle)',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '440px' }} className="animate-fade-in">
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+      <div style={{ width: '100%', maxWidth: '420px' }} className="animate-fade-in">
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+              width: '44px',
+              height: '44px',
+              borderRadius: '10px',
+              backgroundColor: 'var(--color-primary)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 0 24px rgba(99, 102, 241, 0.4)',
-              marginBottom: '1rem',
+              color: 'var(--color-text-on-dark)',
+              marginBottom: '16px',
             }}
           >
-            <RefreshCw size={24} />
+            <RefreshCw size={22} strokeWidth={1.75} />
           </div>
-          <h1 className="title-display" style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: '8px' }}>
             Merchant Console
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Sign in to manage reverse logistics, approvals & refunds
+          <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>
+            Sign in to manage reverse logistics, approvals &amp; refunds
           </p>
         </div>
 
-        <Card elevated padding="2rem">
+        <Card elevated padding="32px">
           <form onSubmit={handleSubmit}>
             <Input
               id="login-email"
@@ -93,13 +93,13 @@ export default function LoginPage() {
             {error && (
               <div
                 style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: 'rgba(244, 63, 94, 0.1)',
-                  border: '1px solid rgba(244, 63, 94, 0.3)',
+                  padding: '12px 16px',
+                  backgroundColor: 'var(--color-error-soft)',
+                  border: '1px solid var(--color-error)',
                   borderRadius: '8px',
-                  color: 'var(--accent-rose)',
-                  fontSize: '0.8125rem',
-                  marginBottom: '1.25rem',
+                  color: 'var(--color-error)',
+                  fontSize: '13px',
+                  marginBottom: '20px',
                 }}
               >
                 {error}
@@ -110,7 +110,7 @@ export default function LoginPage() {
               type="submit"
               variant="primary"
               loading={loading}
-              style={{ width: '100%', marginBottom: '1rem' }}
+              style={{ width: '100%', marginBottom: '12px' }}
               icon={ArrowRight}
             >
               Sign In to Console
@@ -121,18 +121,19 @@ export default function LoginPage() {
               onClick={handleFillDemo}
               style={{
                 width: '100%',
-                padding: '0.6rem',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                border: '1px dashed rgba(99, 102, 241, 0.3)',
+                padding: '10px',
+                backgroundColor: 'var(--color-accent-soft)',
+                border: '1px dashed var(--color-accent-border)',
                 borderRadius: '8px',
-                color: '#818cf8',
-                fontSize: '0.8125rem',
+                color: 'var(--color-text-on-accent)',
+                fontSize: '13px',
+                fontWeight: 500,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem',
-                transition: 'all 0.2s ease',
+                gap: '8px',
+                transition: 'all 180ms ease',
               }}
             >
               <Sparkles size={14} />
@@ -142,16 +143,16 @@ export default function LoginPage() {
 
           <div
             style={{
-              marginTop: '1.5rem',
-              paddingTop: '1.5rem',
-              borderTop: '1px solid var(--border-subtle)',
+              marginTop: '24px',
+              paddingTop: '24px',
+              borderTop: '1px solid var(--color-border-subtle)',
               textAlign: 'center',
-              fontSize: '0.8125rem',
-              color: 'var(--text-muted)',
+              fontSize: '13px',
+              color: 'var(--color-text-muted)',
             }}
           >
             Need a merchant account?{' '}
-            <Link href="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+            <Link href="/register" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
               Create Account
             </Link>
           </div>

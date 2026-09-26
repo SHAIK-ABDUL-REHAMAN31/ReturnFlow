@@ -6,11 +6,11 @@ export function Card({
   children,
   className = '',
   elevated = false,
-  padding = '1.5rem',
+  padding = '24px',
   style = {},
   ...props
 }) {
-  const baseClass = elevated ? 'glass-panel-elevated' : 'glass-panel';
+  const baseClass = elevated ? 'card-elevated' : 'card';
 
   return (
     <div

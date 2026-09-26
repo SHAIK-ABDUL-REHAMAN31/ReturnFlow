@@ -51,10 +51,10 @@ export default function ReturnsQueuePage() {
           <div className="page-wrapper animate-fade-in">
             {/* Header */}
             <div style={{ marginBottom: '1.5rem' }}>
-              <h1 className="title-display gradient-text" style={{ fontSize: '1.875rem' }}>
+              <h1 className="title-display" style={{ fontSize: '1.875rem' }}>
                 Returns Queue
               </h1>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
                 Manage all reverse logistics requests across every stage of the lifecycle
               </p>
             </div>
@@ -77,9 +77,9 @@ export default function ReturnsQueuePage() {
                   gap: '0.35rem',
                   overflowX: 'auto',
                   padding: '0.25rem',
-                  backgroundColor: 'var(--bg-surface-elevated)',
+                  backgroundColor: 'var(--color-bg-muted)',
                   borderRadius: '10px',
-                  border: '1px solid var(--border-subtle)',
+                  border: '1px solid var(--color-border-subtle)',
                 }}
               >
                 {STATUS_TABS.map((tab) => {
@@ -92,9 +92,9 @@ export default function ReturnsQueuePage() {
                         padding: '0.45rem 0.85rem',
                         borderRadius: '6px',
                         fontSize: '0.8125rem',
-                        fontWeight: isActive ? 600 : 500,
-                        backgroundColor: isActive ? 'var(--primary)' : 'transparent',
-                        color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                        fontWeight: 500,
+                        backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
+                        color: isActive ? '#ffffff' : 'var(--color-text-secondary)',
                         border: 'none',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
@@ -112,7 +112,7 @@ export default function ReturnsQueuePage() {
                 <div style={{ position: 'relative', width: '280px' }}>
                   <Search
                     size={16}
-                    color="var(--text-muted)"
+                    color="var(--color-text-muted)"
                     style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)' }}
                   />
                   <input
@@ -133,14 +133,14 @@ export default function ReturnsQueuePage() {
             {/* Table Card */}
             <Card padding="0">
               {loading && items.length === 0 ? (
-                <div style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                   Loading queue data...
                 </div>
               ) : items.length === 0 ? (
                 <div style={{ padding: '3.5rem', textAlign: 'center' }}>
-                  <Inbox size={36} color="var(--text-muted)" style={{ margin: '0 auto 0.75rem' }} />
-                  <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>No return requests found</p>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  <Inbox size={36} color="var(--color-text-muted)" style={{ margin: '0 auto 0.75rem' }} />
+                  <p style={{ color: 'var(--color-text-secondary)', fontWeight: 500 }}>No return requests found</p>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                     Try adjusting the search query or selected status tab.
                   </p>
                 </div>
@@ -150,8 +150,8 @@ export default function ReturnsQueuePage() {
                     <thead>
                       <tr
                         style={{
-                          borderBottom: '1px solid var(--border-subtle)',
-                          color: 'var(--text-muted)',
+                          borderBottom: '1px solid var(--color-border-subtle)',
+                          color: 'var(--color-text-muted)',
                           fontSize: '0.75rem',
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
@@ -172,29 +172,29 @@ export default function ReturnsQueuePage() {
                         <tr
                           key={ret._id}
                           style={{
-                            borderBottom: '1px solid var(--border-subtle)',
+                            borderBottom: '1px solid var(--color-border-subtle)',
                             transition: 'background-color 0.15s ease',
                           }}
                         >
-                          <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
+                          <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>
                             {ret.returnNumber}
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
+                          <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-secondary)' }}>
                             {ret.orderNumber}
                           </td>
                           <td style={{ padding: '1rem 1.5rem' }}>
                             <div style={{ fontWeight: 500 }}>{ret.customerName}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                               {ret.customerEmail}
                             </div>
                           </td>
                           <td style={{ padding: '1rem 1.5rem' }}>
                             {ret.items?.length || 1} item(s)
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
+                          <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-secondary)' }}>
                             {ret.reason}
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
+                          <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>
                             ${ret.refundAmount?.toFixed(2) || '0.00'}
                           </td>
                           <td style={{ padding: '1rem 1.5rem' }}>
@@ -221,9 +221,9 @@ export default function ReturnsQueuePage() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '1rem 1.5rem',
-                  borderTop: '1px solid var(--border-subtle)',
+                  borderTop: '1px solid var(--color-border-subtle)',
                   fontSize: '0.8125rem',
-                  color: 'var(--text-muted)',
+                  color: 'var(--color-text-muted)',
                 }}
               >
                 <span>

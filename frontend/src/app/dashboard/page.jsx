@@ -45,14 +45,14 @@ export default function DashboardPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: '2rem',
+                marginBottom: '32px',
               }}
             >
               <div>
-                <h1 className="title-display gradient-text" style={{ fontSize: '2rem' }}>
+                <h1 className="title-display" style={{ fontSize: '28px', lineHeight: 1.2 }}>
                   Reverse Logistics Dashboard
                 </h1>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem', marginTop: '0.25rem' }}>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginTop: '4px' }}>
                   Real-time return requests, lifecycle state transitions, and refund management
                 </p>
               </div>
@@ -64,123 +64,123 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* Metric KPI Cards */}
+            {/* Metric KPI Cards — §19 */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '1.25rem',
-                marginBottom: '2rem',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gap: '24px',
+                marginBottom: '32px',
               }}
             >
-              <Card className="metric-card">
+              <Card className="metric-card" padding="20px 24px">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>
                     Needs Review
                   </span>
                   <div
                     style={{
-                      padding: '0.5rem',
+                      padding: '8px',
                       borderRadius: '8px',
-                      backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                      color: 'var(--accent-amber)',
+                      backgroundColor: 'var(--color-warning-soft)',
+                      color: 'var(--color-warning)',
                     }}
                   >
-                    <Clock size={18} />
+                    <Clock size={18} strokeWidth={1.75} />
                   </div>
                 </div>
-                <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800 }}>
+                <div style={{ fontSize: '32px', fontWeight: 500, lineHeight: 1.15, color: 'var(--color-text-primary)' }}>
                   {metrics.PENDING_REVIEW || 0}
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--accent-amber)' }}>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                   Awaiting merchant approval
                 </span>
               </Card>
 
-              <Card className="metric-card">
+              <Card className="metric-card" padding="20px 24px">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>
                     Active In Transit
                   </span>
                   <div
                     style={{
-                      padding: '0.5rem',
+                      padding: '8px',
                       borderRadius: '8px',
-                      backgroundColor: 'rgba(6, 182, 212, 0.15)',
-                      color: 'var(--accent-cyan)',
+                      backgroundColor: 'var(--color-info-soft)',
+                      color: 'var(--color-info)',
                     }}
                   >
-                    <Package size={18} />
+                    <Package size={18} strokeWidth={1.75} />
                   </div>
                 </div>
-                <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800 }}>
+                <div style={{ fontSize: '32px', fontWeight: 500, lineHeight: 1.15, color: 'var(--color-text-primary)' }}>
                   {activeInTransit}
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Labels printed & carrier transit
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                  Labels printed &amp; carrier transit
                 </span>
               </Card>
 
-              <Card className="metric-card">
+              <Card className="metric-card" padding="20px 24px">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>
                     Warehouse Received
                   </span>
                   <div
                     style={{
-                      padding: '0.5rem',
+                      padding: '8px',
                       borderRadius: '8px',
-                      backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                      color: 'var(--accent-emerald)',
+                      backgroundColor: 'var(--color-success-soft)',
+                      color: 'var(--color-success)',
                     }}
                   >
-                    <CheckCircle2 size={18} />
+                    <CheckCircle2 size={18} strokeWidth={1.75} />
                   </div>
                 </div>
-                <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800 }}>
+                <div style={{ fontSize: '32px', fontWeight: 500, lineHeight: 1.15, color: 'var(--color-text-primary)' }}>
                   {metrics.RECEIVED || 0}
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)' }}>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                   Items inspected, ready for refund
                 </span>
               </Card>
 
-              <Card className="metric-card">
+              <Card className="metric-card" padding="20px 24px">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 400 }}>
                     Total Refunded
                   </span>
                   <div
                     style={{
-                      padding: '0.5rem',
+                      padding: '8px',
                       borderRadius: '8px',
-                      backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                      color: '#818cf8',
+                      backgroundColor: 'var(--color-accent-soft)',
+                      color: 'var(--color-text-on-accent)',
                     }}
                   >
-                    <DollarSign size={18} />
+                    <DollarSign size={18} strokeWidth={1.75} />
                   </div>
                 </div>
-                <div className="title-display" style={{ fontSize: '2rem', fontWeight: 800 }}>
+                <div style={{ fontSize: '32px', fontWeight: 500, lineHeight: 1.15, color: 'var(--color-text-primary)' }}>
                   ${(metrics.totalRefundedAmount || 0).toFixed(2)}
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                   {metrics.REFUNDED || 0} completed return cycles
                 </span>
               </Card>
             </div>
 
-            {/* State Machine Overview Banner */}
+            {/* State Machine Pipeline — §23 */}
             <Card
               style={{
-                marginBottom: '2rem',
-                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
+                marginBottom: '32px',
+                backgroundColor: 'var(--color-bg-subtle)',
+                border: '1px solid var(--color-border)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <TrendingUp size={20} color="#818cf8" />
-                <h3 className="title-display" style={{ fontSize: '1.125rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <TrendingUp size={18} color="var(--color-primary)" strokeWidth={1.75} />
+                <h3 style={{ fontSize: '16px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
                   Reverse Logistics State Machine Pipeline
                 </h3>
               </div>
@@ -188,54 +188,54 @@ export default function DashboardPage() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
+                  gap: '8px',
                   overflowX: 'auto',
-                  paddingBottom: '0.5rem',
-                  fontSize: '0.8125rem',
+                  paddingBottom: '4px',
+                  fontSize: '13px',
                 }}
               >
-                <span style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', fontWeight: 600 }}>
+                <span style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: 'var(--color-warning-soft)', color: 'var(--color-warning)', fontWeight: 500 }}>
                   PENDING_REVIEW ({metrics.PENDING_REVIEW || 0})
                 </span>
-                <span style={{ color: 'var(--text-muted)' }}>→</span>
-                <span style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>→</span>
+                <span style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: 'var(--color-info-soft)', color: 'var(--color-info)', fontWeight: 500 }}>
                   APPROVED ({metrics.APPROVED || 0})
                 </span>
-                <span style={{ color: 'var(--text-muted)' }}>→</span>
-                <span style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>→</span>
+                <span style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: 'var(--color-info-soft)', color: 'var(--color-info)', fontWeight: 500 }}>
                   LABEL_GENERATED ({metrics.LABEL_GENERATED || 0})
                 </span>
-                <span style={{ color: 'var(--text-muted)' }}>→</span>
-                <span style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(6, 182, 212, 0.15)', color: '#06b6d4', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>→</span>
+                <span style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: 'var(--color-info-soft)', color: 'var(--color-info)', fontWeight: 500 }}>
                   IN_TRANSIT ({metrics.IN_TRANSIT || 0})
                 </span>
-                <span style={{ color: 'var(--text-muted)' }}>→</span>
-                <span style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>→</span>
+                <span style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: 'var(--color-success-soft)', color: 'var(--color-success)', fontWeight: 500 }}>
                   RECEIVED ({metrics.RECEIVED || 0})
                 </span>
-                <span style={{ color: 'var(--text-muted)' }}>→</span>
-                <span style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', background: 'rgba(5, 150, 105, 0.2)', color: '#10b981', fontWeight: 700 }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>→</span>
+                <span style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: 'var(--color-success-soft)', color: 'var(--color-success)', fontWeight: 500 }}>
                   REFUNDED ({metrics.REFUNDED || 0})
                 </span>
               </div>
             </Card>
 
-            {/* Recent Returns Table */}
+            {/* Recent Returns Table — §21 */}
             <Card padding="0">
               <div
                 style={{
-                  padding: '1.25rem 1.5rem',
-                  borderBottom: '1px solid var(--border-subtle)',
+                  padding: '20px 24px',
+                  borderBottom: '1px solid var(--color-border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}
               >
                 <div>
-                  <h3 className="title-display" style={{ fontSize: '1.125rem' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
                     Recent Return Requests
                   </h3>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>
                     Incoming customer requests awaiting processing
                   </p>
                 </div>
@@ -247,37 +247,39 @@ export default function DashboardPage() {
               </div>
 
               {loading && items.length === 0 ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ padding: '48px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                   Loading returns data...
                 </div>
               ) : items.length === 0 ? (
-                <div style={{ padding: '3rem', textAlign: 'center' }}>
-                  <AlertCircle size={32} color="var(--text-muted)" style={{ margin: '0 auto 0.75rem' }} />
-                  <p style={{ color: 'var(--text-secondary)' }}>No return requests found.</p>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                  <AlertCircle size={32} color="var(--color-text-muted)" style={{ margin: '0 auto 12px' }} />
+                  <p style={{ color: 'var(--color-text-secondary)' }}>No return requests found.</p>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                     Run seed script or submit a return through the customer portal.
                   </p>
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                     <thead>
                       <tr
                         style={{
-                          borderBottom: '1px solid var(--border-subtle)',
-                          color: 'var(--text-muted)',
-                          fontSize: '0.75rem',
+                          backgroundColor: 'var(--color-bg-subtle)',
+                          borderBottom: '1px solid var(--color-border-subtle)',
+                          color: 'var(--color-text-tertiary)',
+                          fontSize: '12px',
+                          fontWeight: 500,
                           textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
+                          letterSpacing: '0.04em',
                         }}
                       >
-                        <th style={{ padding: '0.85rem 1.5rem' }}>Return ID</th>
-                        <th style={{ padding: '0.85rem 1.5rem' }}>Order Number</th>
-                        <th style={{ padding: '0.85rem 1.5rem' }}>Customer</th>
-                        <th style={{ padding: '0.85rem 1.5rem' }}>Items / Reason</th>
-                        <th style={{ padding: '0.85rem 1.5rem' }}>Refund Est.</th>
-                        <th style={{ padding: '0.85rem 1.5rem' }}>Status</th>
-                        <th style={{ padding: '0.85rem 1.5rem', textAlign: 'right' }}>Action</th>
+                        <th style={{ padding: '12px 24px', fontWeight: 500 }}>Return ID</th>
+                        <th style={{ padding: '12px 24px', fontWeight: 500 }}>Order Number</th>
+                        <th style={{ padding: '12px 24px', fontWeight: 500 }}>Customer</th>
+                        <th style={{ padding: '12px 24px', fontWeight: 500 }}>Items / Reason</th>
+                        <th style={{ padding: '12px 24px', fontWeight: 500 }}>Refund Est.</th>
+                        <th style={{ padding: '12px 24px', fontWeight: 500 }}>Status</th>
+                        <th style={{ padding: '12px 24px', textAlign: 'right', fontWeight: 500 }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -285,37 +287,37 @@ export default function DashboardPage() {
                         <tr
                           key={ret._id}
                           style={{
-                            borderBottom: '1px solid var(--border-subtle)',
-                            transition: 'background-color 0.15s ease',
+                            borderBottom: '1px solid var(--color-border-subtle)',
+                            transition: 'background-color 120ms ease',
                           }}
                         >
-                          <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          <td style={{ padding: '16px 24px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
                             {ret.returnNumber}
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
+                          <td style={{ padding: '16px 24px', color: 'var(--color-text-secondary)' }}>
                             {ret.orderNumber}
                           </td>
-                          <td style={{ padding: '1rem 1.5rem' }}>
-                            <div style={{ fontWeight: 500 }}>{ret.customerName}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          <td style={{ padding: '16px 24px' }}>
+                            <div style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{ret.customerName}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                               {ret.customerEmail}
                             </div>
                           </td>
-                          <td style={{ padding: '1rem 1.5rem' }}>
-                            <div style={{ color: 'var(--text-primary)' }}>
+                          <td style={{ padding: '16px 24px' }}>
+                            <div style={{ color: 'var(--color-text-primary)' }}>
                               {ret.items?.length || 1} item(s)
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                               {ret.reason}
                             </div>
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
+                          <td style={{ padding: '16px 24px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
                             ${ret.refundAmount?.toFixed(2) || '0.00'}
                           </td>
-                          <td style={{ padding: '1rem 1.5rem' }}>
+                          <td style={{ padding: '16px 24px' }}>
                             <ReturnStatusBadge status={ret.status} />
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                          <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                             <Link href={`/returns/${ret._id}`}>
                               <Button variant="secondary" size="sm">
                                 Review

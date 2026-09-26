@@ -29,14 +29,18 @@ describe('Returns State Machine (§4.4)', () => {
       expect(() => assertValidTransition('PENDING_REVIEW', 'REJECTED')).not.toThrow();
     });
 
-    it('allows APPROVED -> LABEL_GENERATED', () => {
+    it('allows APPROVED -> LABEL_GENERATED and APPROVED -> REJECTED', () => {
       expect(isValidTransition('APPROVED', 'LABEL_GENERATED')).toBe(true);
+      expect(isValidTransition('APPROVED', 'REJECTED')).toBe(true);
       expect(() => assertValidTransition('APPROVED', 'LABEL_GENERATED')).not.toThrow();
+      expect(() => assertValidTransition('APPROVED', 'REJECTED')).not.toThrow();
     });
 
-    it('allows LABEL_GENERATED -> IN_TRANSIT', () => {
+    it('allows LABEL_GENERATED -> IN_TRANSIT and LABEL_GENERATED -> REJECTED (e.g. Return Window Exceeded)', () => {
       expect(isValidTransition('LABEL_GENERATED', 'IN_TRANSIT')).toBe(true);
+      expect(isValidTransition('LABEL_GENERATED', 'REJECTED')).toBe(true);
       expect(() => assertValidTransition('LABEL_GENERATED', 'IN_TRANSIT')).not.toThrow();
+      expect(() => assertValidTransition('LABEL_GENERATED', 'REJECTED')).not.toThrow();
     });
 
     it('allows IN_TRANSIT -> RECEIVED', () => {
@@ -44,9 +48,11 @@ describe('Returns State Machine (§4.4)', () => {
       expect(() => assertValidTransition('IN_TRANSIT', 'RECEIVED')).not.toThrow();
     });
 
-    it('allows RECEIVED -> REFUNDED', () => {
+    it('allows RECEIVED -> REFUNDED and RECEIVED -> REJECTED (e.g. Failed warehouse inspection)', () => {
       expect(isValidTransition('RECEIVED', 'REFUNDED')).toBe(true);
+      expect(isValidTransition('RECEIVED', 'REJECTED')).toBe(true);
       expect(() => assertValidTransition('RECEIVED', 'REFUNDED')).not.toThrow();
+      expect(() => assertValidTransition('RECEIVED', 'REJECTED')).not.toThrow();
     });
   });
 

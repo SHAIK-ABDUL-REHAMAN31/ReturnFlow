@@ -68,7 +68,7 @@
       "height": 6,
       "properties": {
         "metrics": [
-          [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "app/returnflow-alb/1234567890", { "stat": "p95", "color": "#0ea5e9" } ],
+          [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "app/returnflow-alb/08c78a40c7d92900", { "stat": "p95", "color": "#0ea5e9" } ],
           [ ".", "HTTPCode_Target_5XX_Count", ".", ".", { "stat": "Sum", "color": "#e11d48" } ],
           [ ".", "HTTPCode_Target_2XX_Count", ".", ".", { "stat": "Sum", "color": "#10b981" } ]
         ],
@@ -111,7 +111,7 @@
       "height": 6,
       "properties": {
         "metrics": [
-          [ "AWS/States", "ExecutionsSucceeded", "StateMachineArn", "arn:aws:states:us-east-1:123456789012:stateMachine:returnflow-label-generation", { "stat": "Sum", "color": "#10b981" } ],
+          [ "AWS/States", "ExecutionsSucceeded", "StateMachineArn", "arn:aws:states:us-east-1:006635110818:stateMachine:returnflow-label-generation", { "stat": "Sum", "color": "#10b981" } ],
           [ ".", "ExecutionsFailed", ".", ".", { "stat": "Sum", "color": "#ef4444" } ],
           [ ".", "ExecutionsTimedOut", ".", ".", { "stat": "Sum", "color": "#f97316" } ]
         ],

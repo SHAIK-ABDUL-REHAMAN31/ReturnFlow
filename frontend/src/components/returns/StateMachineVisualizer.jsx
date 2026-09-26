@@ -19,10 +19,10 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
   if (isRejected) {
     return (
       <div
-        className="glass-panel"
+        className="card"
         style={{
           padding: '1.25rem 1.5rem',
-          borderLeft: '4px solid var(--accent-rose)',
+          borderLeft: '4px solid var(--color-error)',
           marginBottom: '1.5rem',
         }}
       >
@@ -33,7 +33,7 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
               height: '32px',
               borderRadius: '50%',
               backgroundColor: 'rgba(244, 63, 94, 0.2)',
-              color: 'var(--accent-rose)',
+              color: 'var(--color-error)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -42,10 +42,10 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
             <X size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--accent-rose)' }}>
+            <h4 style={{ fontSize: '0.9375rem', fontWeight: 500, color: 'var(--color-error)' }}>
               Return Request Rejected
             </h4>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', marginTop: '0.15rem' }}>
               {rejectionReason || 'This return request has been rejected by the merchant.'}
             </p>
           </div>
@@ -56,7 +56,7 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
 
   return (
     <div
-      className="glass-panel"
+      className="card"
       style={{
         padding: '1.5rem 1.75rem',
         marginBottom: '1.5rem',
@@ -70,9 +70,9 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
           const isCurrent = currentIndex === idx;
           const isUpcoming = currentIndex < idx;
 
-          let nodeBg = 'var(--bg-surface-elevated)';
-          let nodeColor = 'var(--text-muted)';
-          let borderColor = 'var(--border-subtle)';
+          let nodeBg = 'var(--color-bg-muted)';
+          let nodeColor = 'var(--color-text-muted)';
+          let borderColor = 'var(--color-border-subtle)';
           let glow = 'none';
 
           if (isCompleted) {
@@ -80,10 +80,10 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
             nodeColor = '#10b981';
             borderColor = '#10b981';
           } else if (isCurrent) {
-            nodeBg = 'var(--primary)';
+            nodeBg = 'var(--color-primary)';
             nodeColor = '#ffffff';
-            borderColor = 'var(--primary)';
-            glow = '0 0 16px var(--primary-glow)';
+            borderColor = 'var(--color-primary)';
+            glow = '0 0 16px rgba(25, 52, 56, 0.10)';
           }
 
           return (
@@ -119,7 +119,7 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
                   style={{
                     fontSize: '0.75rem',
                     fontWeight: isCurrent ? 600 : 500,
-                    color: isCurrent ? 'var(--text-primary)' : isCompleted ? '#10b981' : 'var(--text-muted)',
+                    color: isCurrent ? 'var(--color-text-primary)' : isCompleted ? '#10b981' : 'var(--color-text-muted)',
                     textAlign: 'center',
                     whiteSpace: 'nowrap',
                   }}
@@ -133,7 +133,7 @@ export function StateMachineVisualizer({ currentStatus, rejectionReason }) {
                   style={{
                     flex: 1,
                     height: '2px',
-                    backgroundColor: isCompleted ? '#10b981' : 'var(--border-subtle)',
+                    backgroundColor: isCompleted ? '#10b981' : 'var(--color-border-subtle)',
                     margin: '0 0.5rem',
                     marginBottom: '1.5rem',
                     transition: 'background-color 0.3s ease',

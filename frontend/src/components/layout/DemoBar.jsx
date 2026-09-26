@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Truck, ShieldAlert, Check, RefreshCw } from 'lucide-react';
+import { Sparkles, Truck, ShieldAlert, RefreshCw } from 'lucide-react';
 import { apiFetch } from '../../lib/api-client.js';
 
 export function DemoBar() {
@@ -63,56 +63,66 @@ export function DemoBar() {
     }
   };
 
+  const demoBtnStyle = {
+    background: 'var(--color-bg-dark-soft)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    color: 'var(--color-text-on-dark)',
+    padding: '4px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '12px',
+    fontWeight: 500,
+    whiteSpace: 'nowrap',
+  };
+
   return (
     <div
       style={{
-        background: 'linear-gradient(90deg, #1e1b4b 0%, #0f172a 50%, #022c22 100%)',
+        background: 'var(--color-bg-dark)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '0.45rem 2rem',
+        padding: '6px 32px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        fontSize: '0.8125rem',
-        zIndex: 60,
+        fontSize: '13px',
+        zIndex: 'var(--z-drawer)',
         position: 'relative',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <span
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.35rem',
-            fontWeight: 700,
-            color: '#a5b4fc',
+            gap: '6px',
+            fontWeight: 500,
+            color: 'var(--color-accent)',
             textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            fontSize: '0.75rem',
+            letterSpacing: '0.04em',
+            fontSize: '11px',
           }}
         >
-          <Sparkles size={14} color="#a5b4fc" />
+          <Sparkles size={13} />
           Interactive Demo Controls:
         </span>
 
         {alertInfo && (
           <span
             style={{
-              padding: '0.2rem 0.6rem',
+              padding: '3px 10px',
               borderRadius: '4px',
               backgroundColor:
                 alertInfo.type === 'guardrail'
-                  ? 'rgba(244, 63, 94, 0.2)'
+                  ? 'rgba(184, 58, 58, 0.25)'
                   : alertInfo.type === 'success'
-                  ? 'rgba(16, 185, 129, 0.2)'
-                  : 'rgba(239, 68, 68, 0.2)',
-              color:
-                alertInfo.type === 'guardrail'
-                  ? '#fda4af'
-                  : alertInfo.type === 'success'
-                  ? '#6ee7b7'
-                  : '#fca5a5',
-              fontWeight: 600,
-              fontSize: '0.75rem',
+                  ? 'rgba(36, 122, 82, 0.25)'
+                  : 'rgba(184, 58, 58, 0.25)',
+              color: '#ffffff',
+              fontWeight: 500,
+              fontSize: '11px',
             }}
           >
             {alertInfo.text}
@@ -120,23 +130,11 @@ export function DemoBar() {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <button
           onClick={handleReseed}
           disabled={!!loadingAction}
-          style={{
-            background: 'rgba(99, 102, 241, 0.2)',
-            border: '1px solid rgba(99, 102, 241, 0.4)',
-            color: '#c7d2fe',
-            padding: '0.25rem 0.65rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-          }}
+          style={demoBtnStyle}
         >
           <RefreshCw size={12} className={loadingAction === 'reseed' ? 'animate-pulse' : ''} />
           <span>Reset / Seed 7 States</span>
@@ -145,19 +143,7 @@ export function DemoBar() {
         <button
           onClick={handleSimulateCarrier}
           disabled={!!loadingAction}
-          style={{
-            background: 'rgba(6, 182, 212, 0.2)',
-            border: '1px solid rgba(6, 182, 212, 0.4)',
-            color: '#a5f3fc',
-            padding: '0.25rem 0.65rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-          }}
+          style={demoBtnStyle}
         >
           <Truck size={12} />
           <span>Simulate Carrier Scan</span>
@@ -166,19 +152,7 @@ export function DemoBar() {
         <button
           onClick={handleTestGuardrail}
           disabled={!!loadingAction}
-          style={{
-            background: 'rgba(244, 63, 94, 0.2)',
-            border: '1px solid rgba(244, 63, 94, 0.4)',
-            color: '#fecdd3',
-            padding: '0.25rem 0.65rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-          }}
+          style={demoBtnStyle}
         >
           <ShieldAlert size={12} />
           <span>Test 409 Guardrail</span>

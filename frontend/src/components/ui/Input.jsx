@@ -18,7 +18,7 @@ export function Input({
     <div className="form-group">
       {label && (
         <label htmlFor={id} className="form-label">
-          {label} {required && <span style={{ color: 'var(--accent-rose)' }}>*</span>}
+          {label} {required && <span style={{ color: 'var(--color-error)' }}>*</span>}
         </label>
       )}
       <input
@@ -30,11 +30,11 @@ export function Input({
         onChange={onChange}
         disabled={disabled}
         required={required}
-        style={error ? { borderColor: 'var(--accent-rose)' } : {}}
+        style={error ? { borderColor: 'var(--color-error)' } : {}}
         {...props}
       />
       {error && (
-        <span style={{ fontSize: '0.75rem', color: 'var(--accent-rose)', marginTop: '0.2rem' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '2px' }}>
           {error}
         </span>
       )}
