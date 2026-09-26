@@ -49,9 +49,14 @@ jobs:
           aws s3 sync .next/static s3://${{ secrets.FRONTEND_S3_BUCKET || 'returnflow-abdul-bucket' }}/_next/static --delete
 
       - name: Invalidate CloudFront Distribution Cache
-        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        env:
+          CF_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
         run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
+          if [ -n "$CF_DISTRIBUTION_ID" ]; then
+            echo "Invalidating CloudFront cache for: $CF_DISTRIBUTION_ID"
+            aws cloudfront create-invalidation --distribution-id "$CF_DISTRIBUTION_ID" --paths "/*"
+          else
+            echo "No CLOUDFRONT_DISTRIBUTION_ID configured; skipping invalidation."
+          fi
+
 

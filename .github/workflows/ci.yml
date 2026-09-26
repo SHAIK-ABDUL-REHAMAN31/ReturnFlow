@@ -13,6 +13,19 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      NODE_ENV: test
+      PORT: 4000
+      MONGO_URI: mongodb://localhost:27017/returnflow-test
+      JWT_ACCESS_SECRET: local_dev_access_secret_min_32_characters_long_12345
+      JWT_REFRESH_SECRET: local_dev_refresh_secret_min_32_characters_long_12345
+      REDIS_URL: redis://localhost:6379
+      AWS_REGION: us-east-1
+      S3_BUCKET_NAME: returnflow-demo-bucket
+      SQS_LABEL_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/test-label-queue
+      SQS_REFUND_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/test-refund-queue
+      SNS_TOPIC_ARN: arn:aws:sns:us-east-1:123456789012:returnflow-notifications
+      OPENSEARCH_ENDPOINT: https://localhost:9200
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
