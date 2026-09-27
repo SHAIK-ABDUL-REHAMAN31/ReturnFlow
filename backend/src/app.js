@@ -36,7 +36,7 @@ const allowedOrigins = [env.FRONTEND_URL, 'http://localhost:3000', 'http://127.0
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
-  if (origin.endsWith('.vercel.app')) return true;
+  if (origin.endsWith('.vercel.app') || origin.includes('vercel.app')) return true;
   return false;
 };
 
@@ -52,7 +52,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   })
 );
 

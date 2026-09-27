@@ -32,6 +32,14 @@ export class ReturnsRepository {
     return ReturnModel.findByIdAndUpdate(id, { idempotencyKey }, { new: true }).exec();
   }
 
+  async addEvidencePhoto(id, photoKey) {
+    return ReturnModel.findByIdAndUpdate(
+      id,
+      { $push: { evidencePhotos: photoKey } },
+      { new: true }
+    ).exec();
+  }
+
   async list({ status, search, page = 1, limit = 20 }) {
     const query = {};
 

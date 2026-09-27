@@ -294,16 +294,21 @@ export default function ReturnDetailPage() {
                         <div
                           key={idx}
                           style={{
-                            padding: '1rem',
+                            padding: '0.75rem',
                             backgroundColor: 'var(--color-bg-muted)',
                             borderRadius: '8px',
                             border: '1px solid var(--color-border-subtle)',
                             textAlign: 'center',
                           }}
                         >
-                          <Camera size={24} color="var(--color-text-muted)" style={{ margin: '0 auto 0.5rem' }} />
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                            <Camera size={16} color="var(--color-primary)" />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                              Photo #{idx + 1}
+                            </span>
+                          </div>
                           <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
-                            {photoKey}
+                            {photoKey.split('/').pop()}
                           </div>
                         </div>
                       ))}

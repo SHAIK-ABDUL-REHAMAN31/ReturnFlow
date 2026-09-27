@@ -166,4 +166,32 @@ describe('HTTP API & Security Integration Tests', () => {
       expect(Number(res.headers['x-ratelimit-limit'])).toBe(300);
     });
   });
+
+  describe('Direct Evidence Photo Upload (POST /api/returns/:id/photos)', () => {
+    it('returns 400 when no file is attached in multipart form', async () => {
+      const res = await request(app).post('/api/returns/ret_123/photos');
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('FILE_REQUIRED');
+    });
+
+    it('successfully uploads photo and returns key when return exists', async () => {
+      vi.spyOn(returnsRepository, 'findById').mockResolvedValueOnce({
+        _id: 'ret_123',
+        status: 'PENDING_REVIEW',
+        evidencePhotos: [],
+      });
+      vi.spyOn(returnsRepository, 'addEvidencePhoto').mockResolvedValueOnce({});
+
+      const fakeImageBuffer = Buffer.from('fake image content');
+      const res = await request(app)
+        .post('/api/returns/ret_123/photos')
+        .attach('file', fakeImageBuffer, 'evidence.jpg');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('success', true);
+      expect(res.body).toHaveProperty('key');
+      expect(res.body.key).toContain('evidence_');
+    });
+  });
 });

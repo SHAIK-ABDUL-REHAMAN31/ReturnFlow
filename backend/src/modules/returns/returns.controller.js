@@ -99,6 +99,24 @@ export class ReturnsController {
     }
   }
 
+  async uploadEvidencePhoto(req, res, next) {
+    try {
+      const { id } = req.params;
+      if (!req.file) {
+        return res.status(400).json({
+          error: {
+            code: 'FILE_REQUIRED',
+            message: 'No image file uploaded. Please attach a JPG, PNG, or WebP photo.',
+          },
+        });
+      }
+      const result = await returnsService.uploadEvidencePhoto(id, req.file);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getLabelUrl(req, res, next) {
     try {
       const { id } = req.params;

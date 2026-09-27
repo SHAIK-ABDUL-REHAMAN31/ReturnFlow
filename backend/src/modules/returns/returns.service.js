@@ -235,11 +235,28 @@ export class ReturnsService {
     );
 
     // Record photo key in the return document
-    await returnsRepository.updateStatus(returnId, returnDoc.status, {
-      $push: { evidencePhotos: key },
-    });
+    await returnsRepository.addEvidencePhoto(returnId, key);
 
     return { uploadUrl, key };
+  }
+
+  async uploadEvidencePhoto(returnId, file) {
+    const returnDoc = await returnsRepository.findById(returnId);
+    if (!returnDoc) {
+      throw Errors.notFound('Return request');
+    }
+
+    const ext = file.originalname?.split('.').pop() || 'jpg';
+    const key = await s3Service.putEvidencePhoto(
+      returnId,
+      file.buffer,
+      ext,
+      file.mimetype
+    );
+
+    await returnsRepository.addEvidencePhoto(returnId, key);
+
+    return { success: true, key };
   }
 
   async getReturnById(returnId) {

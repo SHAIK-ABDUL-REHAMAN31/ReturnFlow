@@ -247,7 +247,7 @@ export default function NewReturnPortalPage() {
                 {createdReturn.returnNumber}
               </div>
 
-              <div style={{ maxWidth: '480px', margin: '0 auto 28px', textAlign: 'left' }}>
+              <div style={{ maxWidth: '520px', margin: '0 auto 28px', textAlign: 'left' }}>
                 <PhotoUpload returnId={createdReturn._id} />
               </div>
 

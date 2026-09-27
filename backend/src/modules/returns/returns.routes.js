@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { returnsController } from './returns.controller.js';
 import { authMiddleware, requireRole } from '../../middleware/auth.middleware.js';
 import { validate } from '../../middleware/validate.middleware.js';
@@ -10,6 +11,18 @@ import {
   refundReturnSchema,
   presignedUrlSchema,
 } from './returns.schema.js';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (_req, file, cb) => {
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPG, PNG, and WebP images are allowed'));
+    }
+  },
+});
 
 const router = Router();
 
@@ -76,6 +89,13 @@ router.patch(
   requireRole(['MERCHANT', 'ADMIN']),
   validate(refundReturnSchema),
   returnsController.refundReturn.bind(returnsController)
+);
+
+// Upload customer evidence photo directly (bypasses browser S3 CORS limitations)
+router.post(
+  '/:id/photos',
+  upload.single('file'),
+  returnsController.uploadEvidencePhoto.bind(returnsController)
 );
 
 // S3 upload URL for customer evidence photos

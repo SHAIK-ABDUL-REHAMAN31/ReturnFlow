@@ -71,6 +71,30 @@ export class S3Service {
       return key;
     }
   }
+
+  /**
+   * Server-side upload for customer evidence photo (avoids browser-to-S3 CORS limitations).
+   */
+  async putEvidencePhoto(returnId, buffer, fileExtension, contentType) {
+    const sanitizedExt = (fileExtension || 'jpg').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const timestamp = Date.now();
+    const key = `returns/${returnId}/evidence_${timestamp}.${sanitizedExt}`;
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType || 'image/jpeg',
+      });
+      await s3Client.send(command);
+      logger.info({ returnId, key }, 'Uploaded evidence photo to S3 via backend');
+      return key;
+    } catch (err) {
+      logger.warn({ returnId, error: err }, 'S3 PutObject for evidence failed, recorded fallback key');
+      return key;
+    }
+  }
 }
 
 export const s3Service = new S3Service();
