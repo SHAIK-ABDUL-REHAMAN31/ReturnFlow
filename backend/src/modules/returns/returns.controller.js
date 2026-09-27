@@ -58,8 +58,13 @@ export class ReturnsController {
   async rejectReturn(req, res, next) {
     try {
       const { id } = req.params;
-      const { reason } = req.body;
-      const returnDoc = await returnsService.rejectReturn(id, req.user.email, reason);
+      const { reason, category, message, merchantPhotos } = req.body || {};
+      const returnDoc = await returnsService.rejectReturn(id, req.user.email, {
+        reason,
+        category,
+        message,
+        merchantPhotos,
+      });
       res.status(200).json({ return: returnDoc });
     } catch (err) {
       next(err);
@@ -102,6 +107,7 @@ export class ReturnsController {
   async uploadEvidencePhoto(req, res, next) {
     try {
       const { id } = req.params;
+      const isMerchant = req.query.isMerchant === 'true' || req.body?.isMerchant === 'true';
       if (!req.file) {
         return res.status(400).json({
           error: {
@@ -110,7 +116,7 @@ export class ReturnsController {
           },
         });
       }
-      const result = await returnsService.uploadEvidencePhoto(id, req.file);
+      const result = await returnsService.uploadEvidencePhoto(id, req.file, isMerchant);
       res.status(200).json(result);
     } catch (err) {
       next(err);

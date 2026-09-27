@@ -60,11 +60,11 @@ export const approveReturn = createAsyncThunk(
 
 export const rejectReturn = createAsyncThunk(
   'returns/rejectReturn',
-  async ({ returnId, reason }, { rejectWithValue }) => {
+  async ({ returnId, reason, category, message, merchantPhotos }, { rejectWithValue }) => {
     try {
       const data = await apiFetch(`/returns/${returnId}/reject`, {
         method: 'PATCH',
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ reason, category, message, merchantPhotos }),
       });
       return data.return;
     } catch (err) {

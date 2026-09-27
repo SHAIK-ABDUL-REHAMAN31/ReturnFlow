@@ -25,10 +25,10 @@ export function ApproveButton({ returnId, onApproved }) {
         if (onApproved) onApproved(resultAction.payload);
       } else {
         setError(resultAction.payload?.message || 'Approval failed');
-        setLoading(false);
       }
     } catch (err) {
       setError(err.message || 'Unexpected approval error');
+    } finally {
       setLoading(false);
     }
   };

@@ -30,9 +30,29 @@ export const approveReturnSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
-export const rejectReturnSchema = z.object({
-  reason: z.string().min(1, 'Rejection reason is required').max(500),
-});
+export const REJECTION_CATEGORIES = [
+  'WINDOW_EXCEEDED',
+  'DAMAGED_BY_CUSTOMER',
+  'POLICY_VIOLATION',
+  'INCORRECT_ITEM',
+  'MISSING_PARTS',
+  'OTHER',
+];
+
+export const rejectReturnSchema = z
+  .object({
+    category: z.string().optional(),
+    message: z.string().max(1000).optional(),
+    reason: z.string().max(1000).optional(),
+    merchantPhotos: z.array(z.string()).optional().default([]),
+  })
+  .refine(
+    (data) => data.reason || (data.category && data.message),
+    {
+      message: 'Either reason, or both category and detailed message, must be provided for rejection',
+      path: ['message'],
+    }
+  );
 
 export const receiveReturnSchema = z.object({
   note: z.string().max(500).optional(),

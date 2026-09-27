@@ -24,10 +24,10 @@ export function ReceiveButton({ returnId, onReceived }) {
         if (onReceived) onReceived(resultAction.payload);
       } else {
         setError(resultAction.payload?.message || 'Action failed');
-        setLoading(false);
       }
     } catch (err) {
       setError(err.message || 'Unexpected error');
+    } finally {
       setLoading(false);
     }
   };

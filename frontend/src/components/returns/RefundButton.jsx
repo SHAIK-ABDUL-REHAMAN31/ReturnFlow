@@ -28,10 +28,10 @@ export function RefundButton({ returnId, amount, onRefunded }) {
         if (onRefunded) onRefunded(resultAction.payload);
       } else {
         setError(resultAction.payload?.message || 'Refund failed');
-        setLoading(false);
       }
     } catch (err) {
       setError(err.message || 'Unexpected refund error');
+    } finally {
       setLoading(false);
     }
   };

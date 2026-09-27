@@ -112,7 +112,7 @@ export class ReturnsService {
     };
   }
 
-  async rejectReturn(returnId, merchantEmail, rejectionReason) {
+  async rejectReturn(returnId, merchantEmail, rejectionData) {
     const returnDoc = await returnsRepository.findById(returnId);
     if (!returnDoc) {
       throw Errors.notFound('Return request');
@@ -120,14 +120,37 @@ export class ReturnsService {
 
     assertValidTransition(returnDoc.status, 'REJECTED');
 
+    let category = null;
+    let message = null;
+    let reason = null;
+    let merchantPhotos = [];
+
+    if (typeof rejectionData === 'object' && rejectionData !== null) {
+      category = rejectionData.category || null;
+      message = rejectionData.message || null;
+      merchantPhotos = Array.isArray(rejectionData.merchantPhotos) ? rejectionData.merchantPhotos : [];
+      reason = rejectionData.reason || (category && message ? `[${category}] ${message}` : message || category || 'Return rejected by merchant');
+    } else {
+      reason = rejectionData || 'Return rejected by merchant';
+    }
+
+    const updates = {
+      rejectionReason: reason,
+      rejectionCategory: category,
+      rejectionMessage: message || reason,
+    };
+    if (merchantPhotos.length > 0) {
+      updates.merchantEvidencePhotos = merchantPhotos;
+    }
+
     const updated = await returnsRepository.updateStatus(
       returnId,
       'REJECTED',
-      { rejectionReason },
+      updates,
       {
         status: 'REJECTED',
         timestamp: new Date(),
-        note: `Rejected: ${rejectionReason}`,
+        note: `Rejected: ${reason}`,
         actor: merchantEmail,
       }
     );
@@ -135,7 +158,8 @@ export class ReturnsService {
     await snsService.publish('return.rejected', {
       returnId: returnDoc._id.toString(),
       returnNumber: returnDoc.returnNumber,
-      rejectionReason,
+      rejectionReason: reason,
+      rejectionCategory: category,
     });
 
     return updated;
@@ -240,7 +264,7 @@ export class ReturnsService {
     return { uploadUrl, key };
   }
 
-  async uploadEvidencePhoto(returnId, file) {
+  async uploadEvidencePhoto(returnId, file, isMerchant = false) {
     const returnDoc = await returnsRepository.findById(returnId);
     if (!returnDoc) {
       throw Errors.notFound('Return request');
@@ -254,9 +278,20 @@ export class ReturnsService {
       file.mimetype
     );
 
-    await returnsRepository.addEvidencePhoto(returnId, key);
+    if (isMerchant) {
+      await returnsRepository.addMerchantEvidencePhoto(returnId, key);
+    } else {
+      await returnsRepository.addEvidencePhoto(returnId, key);
+    }
 
-    return { success: true, key };
+    let downloadUrl = null;
+    try {
+      downloadUrl = await s3Service.getPresignedDownloadUrl(key, 3600);
+    } catch {
+      downloadUrl = null;
+    }
+
+    return { success: true, key, downloadUrl };
   }
 
   async getReturnById(returnId) {
@@ -264,7 +299,40 @@ export class ReturnsService {
     if (!returnDoc) {
       throw Errors.notFound('Return request');
     }
-    return returnDoc;
+
+    const docObj = returnDoc.toObject ? returnDoc.toObject() : { ...returnDoc };
+
+    // Resolve presigned GET URLs for customer evidence photos
+    if (Array.isArray(docObj.evidencePhotos) && docObj.evidencePhotos.length > 0) {
+      docObj.evidencePhotoUrls = await Promise.all(
+        docObj.evidencePhotos.map(async (key) => {
+          try {
+            return await s3Service.getPresignedDownloadUrl(key, 3600);
+          } catch {
+            return null;
+          }
+        })
+      );
+    } else {
+      docObj.evidencePhotoUrls = [];
+    }
+
+    // Resolve presigned GET URLs for merchant evidence photos
+    if (Array.isArray(docObj.merchantEvidencePhotos) && docObj.merchantEvidencePhotos.length > 0) {
+      docObj.merchantEvidencePhotoUrls = await Promise.all(
+        docObj.merchantEvidencePhotos.map(async (key) => {
+          try {
+            return await s3Service.getPresignedDownloadUrl(key, 3600);
+          } catch {
+            return null;
+          }
+        })
+      );
+    } else {
+      docObj.merchantEvidencePhotoUrls = [];
+    }
+
+    return docObj;
   }
 
   async listReturns(query) {

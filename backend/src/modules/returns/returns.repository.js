@@ -40,6 +40,14 @@ export class ReturnsRepository {
     ).exec();
   }
 
+  async addMerchantEvidencePhoto(id, photoKey) {
+    return ReturnModel.findByIdAndUpdate(
+      id,
+      { $push: { merchantEvidencePhotos: photoKey } },
+      { new: true }
+    ).exec();
+  }
+
   async list({ status, search, page = 1, limit = 20 }) {
     const query = {};
 

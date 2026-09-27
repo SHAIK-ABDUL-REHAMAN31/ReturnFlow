@@ -80,6 +80,18 @@ const ReturnSchema = new Schema(
       type: String,
       default: null,
     },
+    rejectionCategory: {
+      type: String,
+      default: null,
+    },
+    rejectionMessage: {
+      type: String,
+      default: null,
+    },
+    merchantEvidencePhotos: {
+      type: [String],
+      default: [],
+    },
     evidencePhotos: {
       type: [String],
       default: [],

@@ -16,8 +16,11 @@ import {
   History,
   CheckCircle,
   XCircle,
+  Eye,
+  AlertTriangle,
+  ExternalLink,
 } from 'lucide-react';
-import { fetchReturnById } from '../../../features/returns/returnsSlice.js';
+import { fetchReturnById, approveReturn } from '../../../features/returns/returnsSlice.js';
 import { Navbar } from '../../../components/layout/Navbar.jsx';
 import { Sidebar } from '../../../components/layout/Sidebar.jsx';
 import { Card } from '../../../components/ui/Card.jsx';
@@ -26,17 +29,34 @@ import { ReturnStatusBadge } from '../../../components/returns/ReturnStatusBadge
 import { StateMachineVisualizer } from '../../../components/returns/StateMachineVisualizer.jsx';
 import { StepFunctionsVisualizer } from '../../../components/returns/StepFunctionsVisualizer.jsx';
 import { ApproveButton } from '../../../components/returns/ApproveButton.jsx';
-import { RejectModal } from '../../../components/returns/RejectModal.jsx';
+import { RejectModal, REJECTION_CATEGORIES } from '../../../components/returns/RejectModal.jsx';
 import { ReceiveButton } from '../../../components/returns/ReceiveButton.jsx';
 import { RefundButton } from '../../../components/returns/RefundButton.jsx';
 import { LabelDownloadButton } from '../../../components/returns/LabelDownloadButton.jsx';
 import { PhotoUpload } from '../../../components/returns/PhotoUpload.jsx';
+import { ImageGalleryModal } from '../../../components/returns/ImageGalleryModal.jsx';
 
 export default function ReturnDetailPage() {
   const { returnId } = useParams();
   const dispatch = useDispatch();
   const { selectedReturn, loading, error } = useSelector((state) => state.returns);
+  const { user } = useSelector((state) => state.auth);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [galleryImages, setGalleryImages] = useState([]);
+
+  const isMerchant = user?.role === 'MERCHANT' || user?.role === 'ADMIN';
+
+  const refreshReturn = () => {
+    dispatch(fetchReturnById(returnId));
+  };
+
+  const openGallery = (images, startIndex = 0) => {
+    setGalleryImages(images);
+    setGalleryIndex(startIndex);
+    setGalleryOpen(true);
+  };
 
   useEffect(() => {
     if (returnId) {
@@ -85,6 +105,18 @@ export default function ReturnDetailPage() {
   }
 
   const ret = selectedReturn;
+
+  const customerImages = (ret.evidencePhotos || []).map((key, idx) => ({
+    key,
+    url: ret.evidencePhotoUrls?.[idx] || null,
+    name: key.split('/').pop(),
+  }));
+
+  const merchantImages = (ret.merchantEvidencePhotos || []).map((key, idx) => ({
+    key,
+    url: ret.merchantEvidencePhotoUrls?.[idx] || null,
+    name: key.split('/').pop(),
+  }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -138,31 +170,53 @@ export default function ReturnDetailPage() {
 
               {/* State Machine Transition Actions */}
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                {['PENDING_REVIEW', 'APPROVED', 'LABEL_GENERATED', 'RECEIVED'].includes(ret.status) && (
+                {isMerchant ? (
                   <>
-                    <Button
-                      variant="danger"
-                      icon={XCircle}
-                      onClick={() => setRejectModalOpen(true)}
-                    >
-                      Reject
-                    </Button>
-                    {ret.status === 'PENDING_REVIEW' && (
-                      <ApproveButton returnId={ret._id} />
+                    {['PENDING_REVIEW', 'APPROVED', 'LABEL_GENERATED', 'RECEIVED'].includes(ret.status) && (
+                      <>
+                        <Button
+                          variant="danger"
+                          icon={XCircle}
+                          onClick={() => setRejectModalOpen(true)}
+                        >
+                          Reject
+                        </Button>
+                        {ret.status === 'PENDING_REVIEW' && (
+                          <ApproveButton returnId={ret._id} onApproved={refreshReturn} />
+                        )}
+                      </>
+                    )}
+
+                    {(ret.status === 'LABEL_GENERATED' || ret.status === 'IN_TRANSIT') && (
+                      <ReceiveButton returnId={ret._id} onReceived={refreshReturn} />
+                    )}
+
+                    {ret.status === 'RECEIVED' && (
+                      <RefundButton returnId={ret._id} amount={ret.refundAmount} onRefunded={refreshReturn} />
                     )}
                   </>
-                )}
-
-                {(ret.status === 'LABEL_GENERATED' || ret.status === 'IN_TRANSIT') && (
-                  <ReceiveButton returnId={ret._id} />
-                )}
-
-                {ret.status === 'RECEIVED' && (
-                  <RefundButton returnId={ret._id} amount={ret.refundAmount} />
+                ) : (
+                  /* Customer: read-only status indicator */
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      background: 'rgba(99, 102, 241, 0.08)',
+                      border: '1px solid rgba(99, 102, 241, 0.15)',
+                      fontSize: '0.8125rem',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    <History size={16} color="var(--color-primary)" />
+                    <span>Tracking your return — status updates appear automatically</span>
+                  </div>
                 )}
 
                 {ret.labelKey && (
-                  <LabelDownloadButton returnId={ret._id} labelKey={ret.labelKey} />
+                  <LabelDownloadButton returnId={ret._id} labelKey={ret.labelKey} returnData={ret} />
                 )}
 
                 {ret.status === 'REFUNDED' && (
@@ -191,6 +245,133 @@ export default function ReturnDetailPage() {
 
             {/* Step Functions Sub-flow Visualizer (§1.6) */}
             <StepFunctionsVisualizer status={ret.status} />
+
+            {/* Rejection Details Banner / Card */}
+            {ret.status === 'REJECTED' && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.04)',
+                  border: '1.5px solid rgba(239, 68, 68, 0.25)',
+                  borderRadius: '12px',
+                  padding: '20px 24px',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 2px 10px rgba(239, 68, 68, 0.05)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                  <div
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '10px',
+                      backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                      color: 'var(--color-error)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <XCircle size={26} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-error)' }}>
+                        Return Request Declined / Rejected by Merchant
+                      </h3>
+                      {ret.rejectionCategory && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '3px 10px',
+                            borderRadius: '9999px',
+                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                            color: 'var(--color-error)',
+                            letterSpacing: '0.03em',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {REJECTION_CATEGORIES.find((c) => c.value === ret.rejectionCategory)?.label || ret.rejectionCategory}
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: '10px', fontSize: '14px', lineHeight: '1.6', color: 'var(--color-text-primary)' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', fontSize: '12px', marginBottom: '4px' }}>
+                        Merchant Explanation:
+                      </span>
+                      <div
+                        style={{
+                          backgroundColor: 'var(--color-bg)',
+                          border: '1px solid var(--color-border-subtle)',
+                          borderRadius: '8px',
+                          padding: '12px 16px',
+                          color: 'var(--color-text-secondary)',
+                          fontSize: '13px',
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        "{ret.rejectionMessage || ret.rejectionReason || 'Return policy requirements were not satisfied.'}"
+                      </div>
+                    </div>
+
+                    {/* Merchant Evidence Photos */}
+                    {merchantImages.length > 0 && (
+                      <div style={{ marginTop: '14px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: '6px' }}>
+                          Merchant Dock / Inspection Proof Photos ({merchantImages.length})
+                        </span>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                          {merchantImages.map((img, idx) => (
+                            <div
+                              key={idx}
+                              onClick={() => openGallery(merchantImages, idx)}
+                              style={{
+                                width: '76px',
+                                height: '76px',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                border: '1px solid var(--color-border-subtle)',
+                                cursor: 'pointer',
+                                position: 'relative',
+                                backgroundColor: 'var(--color-bg-muted)',
+                              }}
+                              title="Click to enlarge merchant evidence"
+                            >
+                              {img.url ? (
+                                <img
+                                  src={img.url}
+                                  alt={img.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                                  Photo #{idx + 1}
+                                </div>
+                              )}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '3px',
+                                  right: '3px',
+                                  backgroundColor: 'rgba(0,0,0,0.6)',
+                                  borderRadius: '4px',
+                                  padding: '2px 4px',
+                                  color: '#fff',
+                                }}
+                              >
+                                <Eye size={10} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Main Content Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
@@ -288,27 +469,83 @@ export default function ReturnDetailPage() {
                     <Camera size={18} color="var(--color-primary)" />
                     Uploaded Return Evidence (S3 Private Objects)
                   </h3>
-                  {ret.evidencePhotos && ret.evidencePhotos.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                      {ret.evidencePhotos.map((photoKey, idx) => (
+                  {customerImages && customerImages.length > 0 ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.875rem', marginBottom: '1rem' }}>
+                      {customerImages.map((img, idx) => (
                         <div
                           key={idx}
+                          onClick={() => openGallery(customerImages, idx)}
                           style={{
-                            padding: '0.75rem',
-                            backgroundColor: 'var(--color-bg-muted)',
-                            borderRadius: '8px',
+                            borderRadius: '10px',
                             border: '1px solid var(--color-border-subtle)',
-                            textAlign: 'center',
+                            backgroundColor: 'var(--color-bg-muted)',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            transition: 'all 0.2s ease',
+                            position: 'relative',
                           }}
+                          title="Click to view full photo in gallery"
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
-                            <Camera size={16} color="var(--color-primary)" />
-                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                              Photo #{idx + 1}
-                            </span>
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '110px',
+                              backgroundColor: 'rgba(0,0,0,0.1)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              position: 'relative',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {img.url ? (
+                              <img
+                                src={img.url}
+                                alt={img.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                                <Camera size={24} style={{ opacity: 0.6 }} />
+                                <div style={{ fontSize: '10px', marginTop: '2px' }}>Photo #{idx + 1}</div>
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                bottom: '4px',
+                                right: '4px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                borderRadius: '4px',
+                                padding: '2px 6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                color: '#ffffff',
+                                fontSize: '10px',
+                              }}
+                            >
+                              <Eye size={11} />
+                              <span>View</span>
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
-                            {photoKey.split('/').pop()}
+                          <div style={{ padding: '8px 10px', fontSize: '11px' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                              Photo #{idx + 1}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '10px',
+                                color: 'var(--color-text-muted)',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {img.name}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -356,7 +593,7 @@ export default function ReturnDetailPage() {
                             {ret.labelKey}
                           </span>
                         </div>
-                        <LabelDownloadButton returnId={ret._id} labelKey={ret.labelKey} />
+                        <LabelDownloadButton returnId={ret._id} labelKey={ret.labelKey} returnData={ret} />
                       </div>
                     )}
                   </div>
@@ -412,11 +649,32 @@ export default function ReturnDetailPage() {
               </div>
             </div>
 
+            {/* Image Gallery Viewer Modal */}
+            <ImageGalleryModal
+              isOpen={galleryOpen}
+              onClose={() => setGalleryOpen(false)}
+              images={galleryImages}
+              currentIndex={galleryIndex}
+              onIndexChange={setGalleryIndex}
+              isMerchant={isMerchant}
+              returnStatus={ret.status}
+              onApprove={async () => {
+                setGalleryOpen(false);
+                await dispatch(approveReturn({ returnId: ret._id, note: 'Approved via photo inspection modal' }));
+                refreshReturn();
+              }}
+              onReject={() => {
+                setGalleryOpen(false);
+                setRejectModalOpen(true);
+              }}
+            />
+
             {/* Rejection Modal Dialog */}
             <RejectModal
               isOpen={rejectModalOpen}
               onClose={() => setRejectModalOpen(false)}
               returnId={ret._id}
+              onRejected={refreshReturn}
             />
           </div>
         </main>
