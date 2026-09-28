@@ -100,6 +100,17 @@ const ReturnSchema = new Schema(
       type: String,
       default: null,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    trackingToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
     refundAmount: {
       type: Number,
       default: 0,
@@ -116,4 +127,11 @@ const ReturnSchema = new Schema(
   }
 );
 
+// Prevent duplicate return requests for the same SKU on the same order while a return is active
+ReturnSchema.index(
+  { orderNumber: 1, 'items.sku': 1 },
+  { unique: true, partialFilterExpression: { isActive: true } }
+);
+
 export const ReturnModel = mongoose.model('Return', ReturnSchema);
+

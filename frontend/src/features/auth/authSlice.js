@@ -101,9 +101,16 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       // Current User
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+      })
+      .addCase(fetchCurrentUser.rejected, (state) => {
+        state.loading = false;
       })
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {

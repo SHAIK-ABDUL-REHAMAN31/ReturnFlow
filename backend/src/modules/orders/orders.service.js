@@ -1,4 +1,5 @@
 import { ordersRepository } from './orders.repository.js';
+import { returnsRepository } from '../returns/returns.repository.js';
 import { cacheService } from '../../lib/cache.service.js';
 import { Errors } from '../../lib/app-error.js';
 
@@ -43,30 +44,75 @@ export class OrdersService {
       };
     }
 
+    // Query active returns for this order to prevent re-submitting items (§1.1 Fix C)
+    const activeReturns = await returnsRepository.findActiveByOrderNumber(order.orderNumber);
+    const existingReturnMap = new Map();
+    for (const ret of activeReturns) {
+      for (const item of ret.items || []) {
+        existingReturnMap.set(item.sku, {
+          returnNumber: ret.returnNumber,
+          status: ret.status,
+          returnId: ret._id?.toString(),
+          trackingToken: ret.trackingToken,
+        });
+      }
+    }
+
     // Filter items and consult Redis cache if available
     const eligibleItems = [];
     for (const item of order.items) {
       const cacheKey = `eligibility:${item.sku}`;
       const cached = await cacheService.get(cacheKey);
 
-      const isAllowed = cached !== null ? cached.isEligible : (item.isEligibleForReturn !== false);
-      if (isAllowed) {
-        eligibleItems.push({
-          sku: item.sku,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        });
+      const policyAllowed = cached !== null ? cached.isEligible : (item.isEligibleForReturn !== false);
+      const existingReturn = existingReturnMap.get(item.sku);
+      const returnable = !existingReturn && policyAllowed;
+
+      let reason = null;
+      if (existingReturn) {
+        reason = 'ALREADY_REQUESTED';
+      } else if (!policyAllowed) {
+        reason = 'NON_RETURNABLE';
+      }
+
+      eligibleItems.push({
+        sku: item.sku,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        returnable,
+        reason,
+        existingReturnStatus: existingReturn ? existingReturn.status : null,
+        existingReturnNumber: existingReturn ? existingReturn.returnNumber : null,
+        existingTrackingToken: existingReturn ? existingReturn.trackingToken : null,
+      });
+    }
+
+    const hasReturnableItems = eligibleItems.some((item) => item.returnable);
+    const allAlreadyRequested = eligibleItems.length > 0 && eligibleItems.every((item) => item.reason === 'ALREADY_REQUESTED');
+
+    let reasonSummary = undefined;
+    if (!hasReturnableItems) {
+      if (allAlreadyRequested) {
+        reasonSummary = 'All items in this order have already been submitted for return.';
+      } else {
+        reasonSummary = 'All items in this order are non-returnable or have already been returned.';
       }
     }
 
     return {
-      isEligible: eligibleItems.length > 0,
-      reason: eligibleItems.length === 0 ? 'All items in this order are non-returnable' : undefined,
+      isEligible: hasReturnableItems,
+      reason: reasonSummary,
       orderNumber: order.orderNumber,
       customerEmail: order.customerEmail,
       customerName: order.customerName,
       eligibleItems,
+      hasExistingReturns: activeReturns.length > 0,
+      existingReturns: activeReturns.map((r) => ({
+        returnNumber: r.returnNumber,
+        status: r.status,
+        trackingToken: r.trackingToken,
+      })),
     };
   }
 

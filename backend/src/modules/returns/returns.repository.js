@@ -9,15 +9,38 @@ export class ReturnsRepository {
     return ReturnModel.findOne({ returnNumber }).exec();
   }
 
+  async findByTrackingToken(trackingToken) {
+    return ReturnModel.findOne({ trackingToken }).exec();
+  }
+
+  async findActiveByOrderNumber(orderNumber) {
+    return ReturnModel.find({
+      orderNumber,
+      isActive: { $ne: false },
+    }).exec();
+  }
+
+  async findByOrderAndEmail(orderNumber, customerEmail) {
+    const query = {};
+    if (orderNumber) query.orderNumber = orderNumber.trim();
+    if (customerEmail) query.customerEmail = customerEmail.toLowerCase().trim();
+    return ReturnModel.find(query).sort({ createdAt: -1 }).exec();
+  }
+
   async create(data) {
     return ReturnModel.create(data);
   }
 
   async updateStatus(id, newStatus, updates = {}, timelineEvent = null) {
+    const finalUpdates = { ...updates };
+    if (newStatus === 'REJECTED' && finalUpdates.isActive === undefined) {
+      finalUpdates.isActive = false;
+    }
+
     const updateDoc = {
       $set: {
         status: newStatus,
-        ...updates,
+        ...finalUpdates,
       },
     };
 

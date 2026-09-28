@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { Search, Filter, Inbox, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchReturns } from '../../features/returns/returnsSlice.js';
+import { getAccessToken } from '../../lib/api-client.js';
 import { Navbar } from '../../components/layout/Navbar.jsx';
 import { Sidebar } from '../../components/layout/Sidebar.jsx';
 import { Card } from '../../components/ui/Card.jsx';
@@ -23,11 +25,21 @@ const STATUS_TABS = [
 ];
 
 export default function ReturnsQueuePage() {
+  const router = useRouter();
   const dispatch = useDispatch();
   const { items, total, page, totalPages, loading } = useSelector((state) => state.returns);
+  const { user } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Lock merchant route (§4 Step 5 & Checklist #8)
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token && !user) {
+      router.push('/login?redirect=/returns');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     dispatch(fetchReturns({ status: activeTab, search: searchTerm, page: 1, limit: 15 }));

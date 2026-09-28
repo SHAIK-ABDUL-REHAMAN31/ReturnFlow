@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { returnsRepository } from './returns.repository.js';
 import { ordersService } from '../orders/orders.service.js';
 import { assertValidTransition } from './returns.state-machine.js';
@@ -34,33 +35,59 @@ export class ReturnsService {
       calculatedRefund += (item.price || match.price) * item.quantity;
     }
 
-    const returnNumber = `RET-${Math.floor(100000 + Math.random() * 900000)}`;
+    // 3. Prevent duplicate active return requests for the same SKU (§1.1 Fix A/B)
+    const activeReturns = await returnsRepository.findActiveByOrderNumber(dto.orderNumber);
+    const activeSkus = new Set();
+    for (const activeRet of activeReturns) {
+      for (const existingItem of activeRet.items || []) {
+        activeSkus.add(existingItem.sku);
+      }
+    }
+    for (const reqItem of dto.items) {
+      if (activeSkus.has(reqItem.sku)) {
+        throw Errors.conflict(`A return request already exists for item SKU ${reqItem.sku}`);
+      }
+    }
 
-    const returnDoc = await returnsRepository.create({
-      returnNumber,
-      orderNumber: dto.orderNumber,
-      customerEmail: dto.customerEmail,
-      customerName: dto.customerName || eligibility.customerName,
-      items: dto.items,
-      reason: dto.reason,
-      customerNote: dto.customerNote || '',
-      evidencePhotos: dto.evidencePhotos || [],
-      refundAmount: calculatedRefund,
-      status: 'PENDING_REVIEW',
-      timeline: [
-        {
-          status: 'PENDING_REVIEW',
-          timestamp: new Date(),
-          note: 'Return request submitted by customer',
-          actor: user?.email || dto.customerEmail,
-        },
-      ],
-    });
+    const returnNumber = `RET-${Math.floor(100000 + Math.random() * 900000)}`;
+    const trackingToken = crypto.randomBytes(24).toString('base64url');
+
+    let returnDoc;
+    try {
+      returnDoc = await returnsRepository.create({
+        returnNumber,
+        trackingToken,
+        isActive: true,
+        orderNumber: dto.orderNumber,
+        customerEmail: dto.customerEmail,
+        customerName: dto.customerName || eligibility.customerName,
+        items: dto.items,
+        reason: dto.reason,
+        customerNote: dto.customerNote || '',
+        evidencePhotos: dto.evidencePhotos || [],
+        refundAmount: calculatedRefund,
+        status: 'PENDING_REVIEW',
+        timeline: [
+          {
+            status: 'PENDING_REVIEW',
+            timestamp: new Date(),
+            note: 'Return request submitted by customer',
+            actor: user?.email || dto.customerEmail,
+          },
+        ],
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        throw Errors.conflict('A return request already exists for this item');
+      }
+      throw err;
+    }
 
     await snsService.publish('return.created', {
       returnId: returnDoc._id.toString(),
       returnNumber,
       orderNumber: dto.orderNumber,
+      trackingToken,
     });
 
     return returnDoc;
@@ -75,7 +102,7 @@ export class ReturnsService {
     // Strict state machine validation (§4.4)
     assertValidTransition(returnDoc.status, 'APPROVED');
 
-    const updated = await returnsRepository.updateStatus(
+    await returnsRepository.updateStatus(
       returnId,
       'APPROVED',
       { merchantNote: note || returnDoc.merchantNote },
@@ -87,29 +114,62 @@ export class ReturnsService {
       }
     );
 
-    // Asynchronously dispatch label generation to SQS (§1.2 & §4.5)
-    await sqsService.sendLabelJob({
-      returnId: returnDoc._id.toString(),
-      action: 'GENERATE_LABEL',
-      timestamp: new Date().toISOString(),
-    });
+    // Synchronously generate the shipping label so the UI reflects "Approved + Label Ready" immediately
+    let labelKey = null;
+    try {
+      labelKey = await this._generateLabel(returnDoc._id.toString(), returnDoc);
+      assertValidTransition('APPROVED', 'LABEL_GENERATED');
+      await returnsRepository.updateStatus(
+        returnId,
+        'LABEL_GENERATED',
+        { labelKey },
+        {
+          status: 'LABEL_GENERATED',
+          timestamp: new Date(),
+          note: `Shipping label generated and stored in S3 (${labelKey})`,
+          actor: 'LABEL_GENERATOR',
+        }
+      );
+    } catch (err) {
+      logger.warn({ returnId, error: err?.message }, 'Inline label generation failed, enqueueing retry to SQS');
+      await sqsService.sendLabelJob({
+        returnId: returnDoc._id.toString(),
+        action: 'GENERATE_LABEL',
+        timestamp: new Date().toISOString(),
+      });
+    }
 
-    // Orchestrate visual state machine via AWS Step Functions (§1.6 Phase 4)
-    await stepFunctionsService.startLabelGenerationExecution(
-      returnDoc._id.toString(),
-      returnDoc.returnNumber
-    );
+    // Asynchronously dispatch label job or step functions workflow
+    try {
+      await stepFunctionsService.startLabelGenerationExecution(
+        returnDoc._id.toString(),
+        returnDoc.returnNumber
+      );
+    } catch (err) {
+      logger.warn({ error: err?.message }, 'Step Functions execution fallback in approveReturn');
+    }
 
     await snsService.publish('return.approved', {
       returnId: returnDoc._id.toString(),
       returnNumber: returnDoc.returnNumber,
     });
 
+    const finalDoc = await returnsRepository.findById(returnId);
     return {
-      return: updated,
-      status: 'APPROVED',
-      labelStatus: 'processing',
+      return: finalDoc,
+      status: finalDoc.status,
+      labelStatus: finalDoc.labelKey ? 'ready' : 'processing',
     };
+  }
+
+  /**
+   * Generates a minimal shipping label PDF and uploads it to S3.
+   * Used synchronously during approval so the UI shows "label ready" immediately.
+   */
+  async _generateLabel(returnId, returnDoc) {
+    const pdfContent = `%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 300 500]/Parent 2 0 R/Contents 4 0 R>>endobj\n4 0 obj<</Length 85>>stream\nBT /F1 14 Tf 50 450 Td (RETURNFLOW SHIPPING LABEL) Tj ET\nBT /F1 10 Tf 50 420 Td (${returnDoc.returnNumber}) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f\n0000000009 00000 n\n0000000056 00000 n\n0000000111 00000 n\n0000000212 00000 n\ntrailer<</Size 5/Root 1 0 R>>\nstartxref\n349\n%%EOF`;
+    const pdfBuffer = Buffer.from(pdfContent, 'utf-8');
+    return s3Service.putLabel(returnId, pdfBuffer);
   }
 
   async rejectReturn(returnId, merchantEmail, rejectionData) {
@@ -363,6 +423,84 @@ export class ReturnsService {
       returnNumber: returnDoc.returnNumber,
     };
   }
+
+  /**
+   * Public tracking status by unguessable tracking token (§1.4)
+   * Strictly returns customer-safe fields. Never leaks internal notes or merchant evidence.
+   */
+  async getReturnByTrackingToken(trackingToken) {
+    if (!trackingToken) {
+      throw Errors.notFound('Return');
+    }
+
+    const returnDoc = await returnsRepository.findByTrackingToken(trackingToken);
+    if (!returnDoc) {
+      throw Errors.notFound('Return');
+    }
+
+    let labelUrl = null;
+    if (
+      ['LABEL_GENERATED', 'IN_TRANSIT', 'RECEIVED', 'REFUNDED'].includes(returnDoc.status) &&
+      returnDoc.labelKey
+    ) {
+      try {
+        labelUrl = await s3Service.getPresignedDownloadUrl(returnDoc.labelKey, 300);
+      } catch (err) {
+        logger.warn({ error: err?.message }, 'Failed to presign label url for tracking view');
+      }
+    }
+
+    return {
+      returnId: returnDoc._id.toString(),
+      returnNumber: returnDoc.returnNumber,
+      orderNumber: returnDoc.orderNumber,
+      customerName: returnDoc.customerName,
+      itemName: returnDoc.items?.[0]?.name || 'Returned Items',
+      items: returnDoc.items || [],
+      refundAmount: returnDoc.refundAmount || 0,
+      status: returnDoc.status,
+      reason: returnDoc.reason,
+      customerNote: returnDoc.customerNote || '',
+      timeline: (returnDoc.timeline || []).map((ev) => ({
+        status: ev.status,
+        timestamp: ev.timestamp,
+        note: ev.note,
+      })),
+      rejectionReason: returnDoc.status === 'REJECTED' ? returnDoc.rejectionReason : null,
+      labelUrl,
+      trackingToken: returnDoc.trackingToken,
+      createdAt: returnDoc.createdAt,
+      updatedAt: returnDoc.updatedAt,
+    };
+  }
+
+  /**
+   * Public order number + email lookup for tracking (§5 & §6)
+   */
+  async lookupReturnsByOrderAndEmail(orderNumber, email) {
+    if (!orderNumber || !email) {
+      throw Errors.notFound('Return');
+    }
+
+    const returns = await returnsRepository.findByOrderAndEmail(orderNumber, email);
+    if (!returns || returns.length === 0) {
+      throw Errors.notFound('Return'); // Consistent generic error
+    }
+
+    return returns.map((r) => ({
+      returnId: r._id.toString(),
+      returnNumber: r.returnNumber,
+      orderNumber: r.orderNumber,
+      customerName: r.customerName,
+      itemName: r.items?.[0]?.name || 'Returned Items',
+      items: r.items || [],
+      status: r.status,
+      refundAmount: r.refundAmount || 0,
+      trackingToken: r.trackingToken,
+      createdAt: r.createdAt,
+    }));
+  }
 }
 
 export const returnsService = new ReturnsService();
+

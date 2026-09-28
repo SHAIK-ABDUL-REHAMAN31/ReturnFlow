@@ -33,7 +33,6 @@ import { RejectModal, REJECTION_CATEGORIES } from '../../../components/returns/R
 import { ReceiveButton } from '../../../components/returns/ReceiveButton.jsx';
 import { RefundButton } from '../../../components/returns/RefundButton.jsx';
 import { LabelDownloadButton } from '../../../components/returns/LabelDownloadButton.jsx';
-import { PhotoUpload } from '../../../components/returns/PhotoUpload.jsx';
 import { ImageGalleryModal } from '../../../components/returns/ImageGalleryModal.jsx';
 
 export default function ReturnDetailPage() {
@@ -64,6 +63,18 @@ export default function ReturnDetailPage() {
     }
   }, [dispatch, returnId]);
 
+  // Polling hook while status is APPROVED to catch label generation without manual refresh (§2 Fix B)
+  useEffect(() => {
+    if (selectedReturn?.status !== 'APPROVED') return;
+    let tries = 0;
+    const interval = setInterval(() => {
+      dispatch(fetchReturnById(returnId));
+      tries++;
+      if (tries >= 15) clearInterval(interval);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [selectedReturn?.status, dispatch, returnId]);
+
   if (loading && !selectedReturn) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100vh' }}>
@@ -91,9 +102,9 @@ export default function ReturnDetailPage() {
                 <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
                   {error || 'Return request not found'}
                 </p>
-                <Link href="/returns">
+                <Link href={isMerchant ? "/returns" : "/returns/my"}>
                   <Button variant="secondary" icon={ArrowLeft}>
-                    Back to Queue
+                    {isMerchant ? "Back to Queue" : "Back to My Returns"}
                   </Button>
                 </Link>
               </Card>
@@ -137,7 +148,7 @@ export default function ReturnDetailPage() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <Link href="/returns">
+                <Link href={isMerchant ? "/returns" : "/returns/my"}>
                   <button
                     style={{
                       background: 'var(--color-bg-muted)',
@@ -150,6 +161,7 @@ export default function ReturnDetailPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
+                    title={isMerchant ? "Back to Returns Queue" : "Back to My Returns"}
                   >
                     <ArrowLeft size={18} />
                   </button>
@@ -552,14 +564,8 @@ export default function ReturnDetailPage() {
                     </div>
                   ) : (
                     <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                      No photo evidence uploaded yet.
+                      No photo evidence uploaded by customer.
                     </p>
-                  )}
-                  {ret.status === 'PENDING_REVIEW' && (
-                    <PhotoUpload
-                      returnId={ret._id}
-                      onUploadSuccess={() => dispatch(fetchReturnById(returnId))}
-                    />
                   )}
                 </Card>
               </div>
@@ -656,17 +662,6 @@ export default function ReturnDetailPage() {
               images={galleryImages}
               currentIndex={galleryIndex}
               onIndexChange={setGalleryIndex}
-              isMerchant={isMerchant}
-              returnStatus={ret.status}
-              onApprove={async () => {
-                setGalleryOpen(false);
-                await dispatch(approveReturn({ returnId: ret._id, note: 'Approved via photo inspection modal' }));
-                refreshReturn();
-              }}
-              onReject={() => {
-                setGalleryOpen(false);
-                setRejectModalOpen(true);
-              }}
             />
 
             {/* Rejection Modal Dialog */}

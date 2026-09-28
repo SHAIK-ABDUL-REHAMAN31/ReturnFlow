@@ -132,6 +132,26 @@ export class ReturnsController {
       next(err);
     }
   }
+
+  async getTrackStatus(req, res, next) {
+    try {
+      const { token } = req.params;
+      const result = await returnsService.getReturnByTrackingToken(token);
+      res.status(200).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async lookupTrack(req, res, next) {
+    try {
+      const { orderNumber, email } = req.body || {};
+      const result = await returnsService.lookupReturnsByOrderAndEmail(orderNumber, email);
+      res.status(200).json({ returns: result });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const returnsController = new ReturnsController();

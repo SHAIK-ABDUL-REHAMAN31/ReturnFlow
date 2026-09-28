@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { returnsController } from './returns.controller.js';
 import { authMiddleware, requireRole } from '../../middleware/auth.middleware.js';
+import { rateLimit } from '../../middleware/rate-limit.middleware.js';
 import { validate } from '../../middleware/validate.middleware.js';
 import {
   createReturnSchema,
@@ -24,6 +25,12 @@ const upload = multer({
   },
 });
 
+const trackRateLimit = rateLimit({
+  windowSeconds: 60,
+  maxRequests: 60,
+  prefix: 'track',
+});
+
 const router = Router();
 
 // Create return (can be submitted by customer or merchant)
@@ -31,6 +38,19 @@ router.post(
   '/',
   validate(createReturnSchema),
   returnsController.createReturn.bind(returnsController)
+);
+
+// Public customer tracking routes (§1.4, §5 & §6)
+router.get(
+  '/track/:token',
+  trackRateLimit,
+  returnsController.getTrackStatus.bind(returnsController)
+);
+
+router.post(
+  '/track/lookup',
+  trackRateLimit,
+  returnsController.lookupTrack.bind(returnsController)
 );
 
 // List returns (merchant dashboard)
@@ -49,9 +69,11 @@ router.get(
   returnsController.getMetrics.bind(returnsController)
 );
 
-// Single return detail
+// Single return detail (merchant console only)
 router.get(
   '/:id',
+  authMiddleware,
+  requireRole(['MERCHANT', 'ADMIN']),
   returnsController.getReturn.bind(returnsController)
 );
 

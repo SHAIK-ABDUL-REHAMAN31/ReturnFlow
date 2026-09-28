@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Printer,
   Download,
@@ -98,6 +98,15 @@ export function ShippingLabelModal({ isOpen, onClose, returnData }) {
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen || !returnData) return null;
 
   const trackingNumber = `1Z${(returnData.returnNumber || 'RET').replace(/[^0-9]/g, '').padEnd(16, '9')}`;
@@ -134,6 +143,7 @@ export function ShippingLabelModal({ isOpen, onClose, returnData }) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
+        overscrollBehavior: 'contain',
       }}
     >
       <div

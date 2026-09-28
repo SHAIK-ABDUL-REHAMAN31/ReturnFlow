@@ -60,6 +60,8 @@ export class DemoService {
     const returns = [
       {
         returnNumber: 'RET-80101',
+        trackingToken: 'track_demo_token_80101',
+        isActive: true,
         orderNumber: 'ORD-9021',
         customerEmail: 'customer@example.com',
         customerName: 'David Miller',
@@ -72,6 +74,8 @@ export class DemoService {
       },
       {
         returnNumber: 'RET-80102',
+        trackingToken: 'track_demo_token_80102',
+        isActive: true,
         orderNumber: 'ORD-9022',
         customerEmail: 'sarah.j@example.com',
         customerName: 'Sarah Jenkins',

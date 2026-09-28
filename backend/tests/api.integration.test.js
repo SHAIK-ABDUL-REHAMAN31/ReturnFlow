@@ -194,4 +194,78 @@ describe('HTTP API & Security Integration Tests', () => {
       expect(res.body.key).toContain('evidence_');
     });
   });
+
+  describe('Customer Tracking Flow & Access Model (§1.4, §5 & §6)', () => {
+    it('returns customer-safe tracking data without internal merchant notes', async () => {
+      vi.spyOn(returnsRepository, 'findByTrackingToken').mockResolvedValueOnce({
+        _id: 'ret_track_1',
+        returnNumber: 'RET-9901',
+        orderNumber: 'ORD-9021',
+        customerName: 'David Miller',
+        items: [{ sku: 'AUDIO-WH1000', name: 'Wireless Headphones', price: 299.99, quantity: 1 }],
+        status: 'APPROVED',
+        reason: 'DEFECTIVE',
+        customerNote: 'Customer comment',
+        merchantNote: 'INTERNAL SECRET MERCHANT NOTE',
+        merchantEvidencePhotos: ['secret.jpg'],
+        timeline: [{ status: 'APPROVED', timestamp: new Date(), note: 'Approved' }],
+        trackingToken: 'valid-test-token-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const res = await request(app).get('/api/returns/track/valid-test-token-123');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('returnNumber', 'RET-9901');
+      expect(res.body).toHaveProperty('orderNumber', 'ORD-9021');
+      expect(res.body).toHaveProperty('status', 'APPROVED');
+      expect(res.body).toHaveProperty('timeline');
+      // Never expose merchant internal data
+      expect(res.body).not.toHaveProperty('merchantNote');
+      expect(res.body).not.toHaveProperty('merchantEvidencePhotos');
+    });
+
+    it('returns 404 for nonexistent tracking token', async () => {
+      vi.spyOn(returnsRepository, 'findByTrackingToken').mockResolvedValueOnce(null);
+
+      const res = await request(app).get('/api/returns/track/non-existent-random-token');
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('looks up returns by orderNumber and email', async () => {
+      vi.spyOn(returnsRepository, 'findByOrderAndEmail').mockResolvedValueOnce([
+        {
+          _id: 'ret_1',
+          returnNumber: 'RET-9901',
+          orderNumber: 'ORD-9021',
+          customerName: 'David Miller',
+          items: [{ name: 'Wireless Headphones' }],
+          status: 'PENDING_REVIEW',
+          refundAmount: 299.99,
+          trackingToken: 'valid-token-abc',
+          createdAt: new Date(),
+        },
+      ]);
+
+      const res = await request(app)
+        .post('/api/returns/track/lookup')
+        .send({ orderNumber: 'ORD-9021', email: 'customer@example.com' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('returns');
+      expect(res.body.returns).toHaveLength(1);
+      expect(res.body.returns[0]).toHaveProperty('trackingToken', 'valid-token-abc');
+    });
+
+    it('rejects unauthenticated requests to merchant return detail (GET /api/returns/:id)', async () => {
+      const res = await request(app).get('/api/returns/ret_123');
+
+      expect(res.status).toBe(401);
+      expect(res.body.error.code).toBe('UNAUTHORIZED');
+    });
+  });
 });
+

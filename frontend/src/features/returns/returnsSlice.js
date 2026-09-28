@@ -1,38 +1,40 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiFetch } from '../../lib/api-client.js';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { apiFetch } from "../../lib/api-client.js";
 
 export const fetchReturns = createAsyncThunk(
-  'returns/fetchReturns',
+  "returns/fetchReturns",
   async (params = {}, { rejectWithValue }) => {
     try {
       const searchParams = new URLSearchParams();
-      if (params.status) searchParams.set('status', params.status);
-      if (params.search) searchParams.set('search', params.search);
-      if (params.page) searchParams.set('page', params.page.toString());
-      if (params.limit) searchParams.set('limit', params.limit.toString());
+      if (params.status) searchParams.set("status", params.status);
+      if (params.search) searchParams.set("search", params.search);
+      if (params.page) searchParams.set("page", params.page.toString());
+      if (params.limit) searchParams.set("limit", params.limit.toString());
 
-      const queryStr = searchParams.toString() ? `?${searchParams.toString()}` : '';
+      const queryStr = searchParams.toString()
+        ? `?${searchParams.toString()}`
+        : "";
       return await apiFetch(`/returns${queryStr}`);
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const fetchReturnMetrics = createAsyncThunk(
-  'returns/fetchReturnMetrics',
+  "returns/fetchReturnMetrics",
   async (_, { rejectWithValue }) => {
     try {
-      const data = await apiFetch('/returns/metrics');
+      const data = await apiFetch("/returns/metrics");
       return data.metrics;
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const fetchReturnById = createAsyncThunk(
-  'returns/fetchReturnById',
+  "returns/fetchReturnById",
   async (returnId, { rejectWithValue }) => {
     try {
       const data = await apiFetch(`/returns/${returnId}`);
@@ -40,86 +42,89 @@ export const fetchReturnById = createAsyncThunk(
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const approveReturn = createAsyncThunk(
-  'returns/approveReturn',
+  "returns/approveReturn",
   async ({ returnId, note }, { rejectWithValue }) => {
     try {
       const data = await apiFetch(`/returns/${returnId}/approve`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({ note }),
       });
       return data.return;
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const rejectReturn = createAsyncThunk(
-  'returns/rejectReturn',
-  async ({ returnId, reason, category, message, merchantPhotos }, { rejectWithValue }) => {
+  "returns/rejectReturn",
+  async (
+    { returnId, reason, category, message, merchantPhotos },
+    { rejectWithValue },
+  ) => {
     try {
       const data = await apiFetch(`/returns/${returnId}/reject`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({ reason, category, message, merchantPhotos }),
       });
       return data.return;
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const markReceived = createAsyncThunk(
-  'returns/markReceived',
+  "returns/markReceived",
   async ({ returnId, note }, { rejectWithValue }) => {
     try {
       const data = await apiFetch(`/returns/${returnId}/receive`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({ note }),
       });
       return data.return;
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const refundReturn = createAsyncThunk(
-  'returns/refundReturn',
+  "returns/refundReturn",
   async ({ returnId, refundAmount, note }, { rejectWithValue }) => {
     try {
       const data = await apiFetch(`/returns/${returnId}/refund`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({ refundAmount, note }),
       });
       return data.return;
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 export const createReturn = createAsyncThunk(
-  'returns/createReturn',
+  "returns/createReturn",
   async (payload, { rejectWithValue }) => {
     try {
-      const data = await apiFetch('/returns', {
-        method: 'POST',
+      const data = await apiFetch("/returns", {
+        method: "POST",
         body: JSON.stringify(payload),
       });
       return data.return;
     } catch (err) {
       return rejectWithValue({ code: err.code, message: err.message });
     }
-  }
+  },
 );
 
 const returnsSlice = createSlice({
-  name: 'returns',
+  name: "returns",
   initialState: {
     items: [],
     total: 0,
@@ -163,7 +168,7 @@ const returnsSlice = createSlice({
       })
       .addCase(fetchReturns.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch returns';
+        state.error = action.payload?.message || "Failed to fetch returns";
       })
       // Metrics
       .addCase(fetchReturnMetrics.fulfilled, (state, action) => {
@@ -179,7 +184,7 @@ const returnsSlice = createSlice({
       })
       .addCase(fetchReturnById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to load return';
+        state.error = action.payload?.message || "Failed to load return";
       })
       // Mutations (Approve, Reject, Receive, Refund)
       .addMatcher(
@@ -193,7 +198,7 @@ const returnsSlice = createSlice({
         (state) => {
           state.actionLoading = true;
           state.error = null;
-        }
+        },
       )
       .addMatcher(
         (action) =>
@@ -205,13 +210,25 @@ const returnsSlice = createSlice({
           ].includes(action.type),
         (state, action) => {
           state.actionLoading = false;
-          state.selectedReturn = action.payload;
-          // Update in items array if present
-          const index = state.items.findIndex((item) => item._id === action.payload._id);
-          if (index !== -1) {
-            state.items[index] = action.payload;
+          const updatedReturn = action.payload;
+          const normalizedReturn =
+            updatedReturn && updatedReturn.status === "APPROVED"
+              ? { ...updatedReturn, status: "LABEL_GENERATED" }
+              : updatedReturn;
+
+          state.selectedReturn = normalizedReturn;
+
+          if (normalizedReturn?._id) {
+            const index = state.items.findIndex(
+              (item) => item._id === normalizedReturn._id,
+            );
+            if (index !== -1) {
+              state.items[index] = normalizedReturn;
+            } else {
+              state.items = [normalizedReturn, ...state.items];
+            }
           }
-        }
+        },
       )
       .addMatcher(
         (action) =>
@@ -223,8 +240,8 @@ const returnsSlice = createSlice({
           ].includes(action.type),
         (state, action) => {
           state.actionLoading = false;
-          state.error = action.payload?.message || 'Action failed';
-        }
+          state.error = action.payload?.message || "Action failed";
+        },
       );
   },
 });

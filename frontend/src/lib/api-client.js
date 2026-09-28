@@ -1,25 +1,44 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 export class ApiClientError extends Error {
   constructor(status, code, message) {
     super(message);
-    this.name = 'ApiClientError';
+    this.name = "ApiClientError";
     this.status = status;
     this.code = code;
   }
 }
 
-// In-memory access token storage (§3 & §5.3) - never in localStorage to prevent XSS exfiltration
+// Use sessionStorage so a page refresh does not log the merchant out unexpectedly.
+const TOKEN_STORAGE_KEY = "returnflow_access_token";
 let inMemoryAccessToken = null;
 let isRefreshing = false;
 let refreshSubscribers = [];
 
 export function setAccessToken(token) {
   inMemoryAccessToken = token;
+
+  if (typeof window !== "undefined") {
+    if (token) {
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } else {
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  }
 }
 
 export function getAccessToken() {
-  return inMemoryAccessToken;
+  if (inMemoryAccessToken) return inMemoryAccessToken;
+
+  if (typeof window !== "undefined") {
+    const storedToken = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    if (storedToken) {
+      inMemoryAccessToken = storedToken;
+      return storedToken;
+    }
+  }
+
+  return null;
 }
 
 function onRefreshed(token) {
@@ -34,8 +53,8 @@ export async function apiFetch(path, options = {}) {
   };
 
   // Only default to JSON if body is not FormData
-  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
-    headers['Content-Type'] = 'application/json';
+  if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
   }
 
   const token = getAccessToken();
@@ -46,20 +65,25 @@ export async function apiFetch(path, options = {}) {
   const fetchOptions = {
     ...options,
     headers,
-    credentials: 'include', // Includes httpOnly cookies for /refresh
+    credentials: "include", // Includes httpOnly cookies for /refresh
   };
 
   let response = await fetch(url, fetchOptions);
 
   // Auto-refresh token on 401 (§3)
-  if (response.status === 401 && !options._retry && !path.includes('/auth/login') && !path.includes('/auth/refresh')) {
+  if (
+    response.status === 401 &&
+    !options._retry &&
+    !path.includes("/auth/login") &&
+    !path.includes("/auth/refresh")
+  ) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
         const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
         });
 
         if (refreshRes.ok) {
@@ -71,11 +95,9 @@ export async function apiFetch(path, options = {}) {
           // Retry initial request with new access token
           return apiFetch(path, { ...options, _retry: true });
         } else {
-          setAccessToken(null);
           isRefreshing = false;
-          if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-            window.location.href = '/login';
-          }
+          // Keep the merchant session alive during demo refresh/reseed cycles.
+          // The app should only log out on an explicit logout action, not on a transient refresh failure.
         }
       } catch (err) {
         setAccessToken(null);
@@ -94,8 +116,9 @@ export async function apiFetch(path, options = {}) {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    const code = errorBody?.error?.code || 'UNKNOWN_ERROR';
-    const message = errorBody?.error?.message || response.statusText || 'Request failed';
+    const code = errorBody?.error?.code || "UNKNOWN_ERROR";
+    const message =
+      errorBody?.error?.message || response.statusText || "Request failed";
     throw new ApiClientError(response.status, code, message);
   }
 

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Package,
   Search,
@@ -16,61 +16,32 @@ import {
   Trash2,
   Image as ImageIcon,
   Loader2,
-} from 'lucide-react';
-import { apiFetch } from '../../../lib/api-client.js';
-import { RETURN_REASONS } from '../../../lib/validators/return.schema.js';
-import { Card } from '../../../components/ui/Card.jsx';
-import { Button } from '../../../components/ui/Button.jsx';
-import { Input } from '../../../components/ui/Input.jsx';
-import { PhotoUpload } from '../../../components/returns/PhotoUpload.jsx';
+} from "lucide-react";
+import { apiFetch } from "../../../lib/api-client.js";
+import { RETURN_REASONS } from "../../../lib/validators/return.schema.js";
+import { Card } from "../../../components/ui/Card.jsx";
+import { Button } from "../../../components/ui/Button.jsx";
+import { Input } from "../../../components/ui/Input.jsx";
+import { PhotoUpload } from "../../../components/returns/PhotoUpload.jsx";
 
 export default function NewReturnPortalPage() {
   const router = useRouter();
 
   // Step 1: Order verification
-  const [orderNumber, setOrderNumber] = useState('ORD-9021');
-  const [customerEmail, setCustomerEmail] = useState('customer@example.com');
+  const [orderNumber, setOrderNumber] = useState("ORD-9021");
+  const [customerEmail, setCustomerEmail] = useState("customer@example.com");
   const [checkingEligibility, setCheckingEligibility] = useState(false);
   const [eligibilityData, setEligibilityData] = useState(null);
   const [eligibilityError, setEligibilityError] = useState(null);
 
   // Step 2: Item selection, reason & photo evidence
   const [selectedItems, setSelectedItems] = useState({});
-  const [reason, setReason] = useState('DEFECTIVE');
-  const [customerNote, setCustomerNote] = useState('');
-  const [photoFiles, setPhotoFiles] = useState([]);
+  const [reason, setReason] = useState("DEFECTIVE");
+  const [customerNote, setCustomerNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [uploadStatusText, setUploadStatusText] = useState('');
+  const [uploadStatusText, setUploadStatusText] = useState("");
   const [submitError, setSubmitError] = useState(null);
   const [createdReturn, setCreatedReturn] = useState(null);
-
-  const handleAddPhotos = (e) => {
-    const files = Array.from(e.target.files || []);
-    const valid = [];
-    for (const f of files) {
-      if (f.size > 5 * 1024 * 1024) {
-        setSubmitError(`File "${f.name}" exceeds 5MB limit.`);
-        continue;
-      }
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) {
-        setSubmitError(`File "${f.name}" is not a supported format (JPG, PNG, WebP).`);
-        continue;
-      }
-      valid.push({
-        file: f,
-        previewUrl: URL.createObjectURL(f),
-      });
-    }
-    setPhotoFiles((prev) => [...prev, ...valid]);
-  };
-
-  const handleRemovePhoto = (index) => {
-    setPhotoFiles((prev) => {
-      const target = prev[index];
-      if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
 
   const handleCheckEligibility = async (e) => {
     e.preventDefault();
@@ -80,31 +51,40 @@ export default function NewReturnPortalPage() {
 
     try {
       const data = await apiFetch(
-        `/orders/eligibility/${orderNumber.trim()}?email=${encodeURIComponent(customerEmail.trim())}`
+        `/orders/eligibility/${orderNumber.trim()}?email=${encodeURIComponent(customerEmail.trim())}`,
       );
 
+      setEligibilityData(data);
+
       if (!data.isEligible) {
-        setEligibilityError(data.reason || 'This order is not eligible for return.');
+        setEligibilityError(
+          data.reason || "This order is not eligible for return.",
+        );
+        setSelectedItems({});
       } else {
-        setEligibilityData(data);
-        // Pre-select first item
-        if (data.eligibleItems?.length > 0) {
+        setEligibilityError(null);
+        // Pre-select first eligible item that is actually returnable (§1.1 Fix C)
+        const firstReturnable = data.eligibleItems?.find((it) => it.returnable !== false);
+        if (firstReturnable) {
           setSelectedItems({
-            [data.eligibleItems[0].sku]: {
-              ...data.eligibleItems[0],
+            [firstReturnable.sku]: {
+              ...firstReturnable,
               returnQuantity: 1,
             },
           });
+        } else {
+          setSelectedItems({});
         }
       }
     } catch (err) {
-      setEligibilityError(err.message || 'Could not verify order eligibility.');
+      setEligibilityError(err.message || "Could not verify order eligibility.");
     } finally {
       setCheckingEligibility(false);
     }
   };
 
   const toggleItem = (item) => {
+    if (item.returnable === false) return;
     setSelectedItems((prev) => {
       const next = { ...prev };
       if (next[item.sku]) {
@@ -127,13 +107,13 @@ export default function NewReturnPortalPage() {
     }));
 
     if (itemsToReturn.length === 0) {
-      setSubmitError('Please select at least one item to return');
+      setSubmitError("Please select at least one item to return");
       return;
     }
 
     setSubmitting(true);
     setSubmitError(null);
-    setUploadStatusText('Creating return request...');
+    setUploadStatusText("Creating return request...");
 
     try {
       const payload = {
@@ -145,93 +125,81 @@ export default function NewReturnPortalPage() {
         customerNote,
       };
 
-      const res = await apiFetch('/returns', {
-        method: 'POST',
+      const res = await apiFetch("/returns", {
+        method: "POST",
         body: JSON.stringify(payload),
       });
 
       const ret = res.return;
-
-      // Upload any pre-selected photos to the created return
-      if (photoFiles.length > 0) {
-        setUploadStatusText(`Uploading ${photoFiles.length} photo evidence image(s)...`);
-        for (let i = 0; i < photoFiles.length; i++) {
-          const { file } = photoFiles[i];
-          const formData = new FormData();
-          formData.append('file', file);
-          try {
-            await apiFetch(`/returns/${ret._id}/photos`, {
-              method: 'POST',
-              body: formData,
-            });
-          } catch (uploadErr) {
-            console.error('Evidence photo upload error:', uploadErr);
-          }
-        }
-      }
-
       setCreatedReturn(ret);
     } catch (err) {
-      setSubmitError(err.message || 'Failed to submit return request');
+      setSubmitError(err.message || "Failed to submit return request");
     } finally {
       setSubmitting(false);
-      setUploadStatusText('');
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-bg-subtle)' }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--color-bg-subtle)",
+      }}
+    >
       {/* Design System Header (§17 & §3.1) */}
       <header
         style={{
-          height: '64px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          backgroundColor: 'var(--color-bg)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
+          height: "64px",
+          borderBottom: "1px solid var(--color-border-subtle)",
+          backgroundColor: "var(--color-bg)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 32px",
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--color-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--color-text-on-dark)',
+                width: "36px",
+                height: "36px",
+                borderRadius: "8px",
+                backgroundColor: "var(--color-primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--color-text-on-dark)",
               }}
             >
               <RefreshCw size={18} strokeWidth={1.75} />
             </div>
             <span
               style={{
-                fontSize: '18px',
+                fontSize: "18px",
                 fontWeight: 500,
-                letterSpacing: '-0.01em',
-                color: 'var(--color-text-primary)',
+                letterSpacing: "-0.01em",
+                color: "var(--color-text-primary)",
               }}
             >
-              Return<span style={{ color: 'var(--color-primary)' }}>Flow</span>
+              Return<span style={{ color: "var(--color-primary)" }}>Flow</span>
             </span>
           </div>
 
           <span
             style={{
-              fontSize: '11px',
-              padding: '3px 8px',
-              borderRadius: '4px',
-              backgroundColor: 'var(--color-accent-soft)',
-              color: 'var(--color-text-on-accent)',
-              border: '1px solid var(--color-accent-border)',
+              fontSize: "11px",
+              padding: "3px 8px",
+              borderRadius: "4px",
+              backgroundColor: "var(--color-accent-soft)",
+              color: "var(--color-text-on-accent)",
+              border: "1px solid var(--color-accent-border)",
               fontWeight: 500,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
             }}
           >
             Customer Returns Portal
@@ -246,60 +214,73 @@ export default function NewReturnPortalPage() {
       </header>
 
       {/* Main Container */}
-      <main style={{ flex: 1, padding: '48px 24px', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: '640px' }}>
+      <main
+        style={{
+          flex: 1,
+          padding: "48px 24px",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ width: "100%", maxWidth: "640px" }}>
           {createdReturn ? (
             /* Success State */
             <div
               style={{
-                backgroundColor: 'var(--color-bg)',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: '12px',
-                padding: '48px 32px',
-                textAlign: 'center',
-                boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                backgroundColor: "var(--color-bg)",
+                border: "1px solid var(--color-border-subtle)",
+                borderRadius: "12px",
+                padding: "48px 32px",
+                textAlign: "center",
+                boxShadow: "0 2px 12px rgba(25, 52, 56, 0.04)",
               }}
             >
               <div
                 style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--color-success-soft)',
-                  color: 'var(--color-success)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 20px',
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "50%",
+                  backgroundColor: "var(--color-success-soft)",
+                  color: "var(--color-success)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 20px",
                 }}
               >
                 <CheckCircle2 size={32} />
               </div>
               <h2
                 style={{
-                  fontSize: '24px',
+                  fontSize: "24px",
                   fontWeight: 500,
-                  color: 'var(--color-text-primary)',
-                  letterSpacing: '-0.02em',
-                  marginBottom: '8px',
+                  color: "var(--color-text-primary)",
+                  letterSpacing: "-0.02em",
+                  marginBottom: "8px",
                 }}
               >
                 Return Request Submitted
               </h2>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
+              <p
+                style={{
+                  color: "var(--color-text-secondary)",
+                  fontSize: "14px",
+                  marginBottom: "24px",
+                }}
+              >
                 Your request has entered the automated review pipeline.
               </p>
               <div
                 style={{
-                  display: 'inline-block',
-                  padding: '10px 20px',
-                  backgroundColor: 'var(--color-bg-muted)',
-                  border: '1px solid var(--color-border-subtle)',
-                  borderRadius: '8px',
-                  fontSize: '18px',
+                  display: "inline-block",
+                  padding: "10px 20px",
+                  backgroundColor: "var(--color-bg-muted)",
+                  border: "1px solid var(--color-border-subtle)",
+                  borderRadius: "8px",
+                  fontSize: "18px",
                   fontWeight: 500,
-                  color: 'var(--color-primary)',
-                  marginBottom: '28px',
+                  color: "var(--color-primary)",
+                  marginBottom: "28px",
                 }}
               >
                 {createdReturn.returnNumber}
@@ -308,47 +289,77 @@ export default function NewReturnPortalPage() {
               {/* Summary of submitted request & photos */}
               <div
                 style={{
-                  maxWidth: '520px',
-                  margin: '0 auto 28px',
-                  textAlign: 'left',
-                  backgroundColor: 'var(--color-bg-muted)',
-                  border: '1px solid var(--color-border-subtle)',
-                  borderRadius: '10px',
-                  padding: '16px 20px',
+                  maxWidth: "520px",
+                  margin: "0 auto 28px",
+                  textAlign: "left",
+                  backgroundColor: "var(--color-bg-muted)",
+                  border: "1px solid var(--color-border-subtle)",
+                  borderRadius: "10px",
+                  padding: "16px 20px",
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "var(--color-text-primary)",
+                    }}
+                  >
                     Submission Summary
                   </span>
                   <span
                     style={{
-                      fontSize: '11px',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                      color: '#b45309',
+                      fontSize: "11px",
+                      padding: "2px 8px",
+                      borderRadius: "4px",
+                      backgroundColor: "rgba(234, 179, 8, 0.1)",
+                      color: "#b45309",
                       fontWeight: 600,
                     }}
                   >
                     PENDING REVIEW
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
-                  <div>Order: <strong>{createdReturn.orderNumber}</strong></div>
-                  <div>Estimated Refund: <strong>${createdReturn.refundAmount?.toFixed(2) || '0.00'}</strong></div>
-                  <div>Items Claimed: <strong>{createdReturn.items?.length || 1} item(s)</strong></div>
-                  {photoFiles.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', color: '#059669', fontWeight: 500 }}>
-                      <CheckCircle2 size={14} />
-                      <span>{photoFiles.length} condition photo(s) securely attached and sent to merchant</span>
-                    </div>
-                  )}
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "var(--color-text-secondary)",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  <div>
+                    Order: <strong>{createdReturn.orderNumber}</strong>
+                  </div>
+                  <div>
+                    Estimated Refund:{" "}
+                    <strong>
+                      ${createdReturn.refundAmount?.toFixed(2) || "0.00"}
+                    </strong>
+                  </div>
+                  <div>
+                    Items Claimed:{" "}
+                    <strong>{createdReturn.items?.length || 1} item(s)</strong>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <Link href={`/returns/${createdReturn._id}`}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Link href={`/track/${createdReturn.trackingToken || createdReturn._id}`}>
                   <Button variant="primary">Track Return Status</Button>
                 </Link>
                 <Button
@@ -356,39 +367,73 @@ export default function NewReturnPortalPage() {
                   onClick={() => {
                     setCreatedReturn(null);
                     setEligibilityData(null);
+                    setSelectedItems({});
                   }}
                 >
                   Submit Another Return
                 </Button>
               </div>
+
+              <div
+                style={{
+                  marginTop: "24px",
+                  padding: "14px 16px",
+                  backgroundColor: "var(--color-bg-subtle)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  color: "var(--color-text-secondary)",
+                  textAlign: "center",
+                }}
+              >
+                <div>Bookmark your tracking link to monitor review and label updates:</div>
+                <div
+                  style={{
+                    marginTop: "6px",
+                    fontFamily: "monospace",
+                    color: "var(--color-primary)",
+                    wordBreak: "break-all",
+                    fontWeight: 500,
+                  }}
+                >
+                  {typeof window !== "undefined"
+                    ? `${window.location.origin}/track/${createdReturn.trackingToken || createdReturn._id}`
+                    : `/track/${createdReturn.trackingToken || createdReturn._id}`}
+                </div>
+              </div>
             </div>
           ) : !eligibilityData ? (
             /* Step 1: Lookup Order */
             <div className="animate-fade-in">
-              <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <div style={{ textAlign: "center", marginBottom: "32px" }}>
                 <h1
                   style={{
-                    fontSize: '28px',
+                    fontSize: "28px",
                     fontWeight: 500,
-                    letterSpacing: '-0.02em',
-                    color: 'var(--color-text-primary)',
-                    marginBottom: '8px',
+                    letterSpacing: "-0.02em",
+                    color: "var(--color-text-primary)",
+                    marginBottom: "8px",
                   }}
                 >
                   Start a Return or Exchange
                 </h1>
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>
-                  Enter your order number and customer email to check return eligibility.
+                <p
+                  style={{
+                    color: "var(--color-text-secondary)",
+                    fontSize: "14px",
+                  }}
+                >
+                  Enter your order number and customer email to check return
+                  eligibility.
                 </p>
               </div>
 
               <div
                 style={{
-                  backgroundColor: 'var(--color-bg)',
-                  border: '1px solid var(--color-border-subtle)',
-                  borderRadius: '12px',
-                  padding: '32px',
-                  boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                  backgroundColor: "var(--color-bg)",
+                  border: "1px solid var(--color-border-subtle)",
+                  borderRadius: "12px",
+                  padding: "32px",
+                  boxShadow: "0 2px 12px rgba(25, 52, 56, 0.04)",
                 }}
               >
                 <form onSubmit={handleCheckEligibility}>
@@ -414,16 +459,16 @@ export default function NewReturnPortalPage() {
                   {eligibilityError && (
                     <div
                       style={{
-                        padding: '12px 14px',
-                        backgroundColor: 'var(--color-error-soft)',
-                        border: '1px solid var(--color-error)',
-                        borderRadius: '8px',
-                        color: 'var(--color-error)',
-                        fontSize: '13px',
-                        marginBottom: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
+                        padding: "12px 14px",
+                        backgroundColor: "var(--color-error-soft)",
+                        border: "1px solid var(--color-error)",
+                        borderRadius: "8px",
+                        color: "var(--color-error)",
+                        fontSize: "13px",
+                        marginBottom: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
                       }}
                     >
                       <AlertTriangle size={16} />
@@ -435,7 +480,7 @@ export default function NewReturnPortalPage() {
                     type="submit"
                     variant="primary"
                     loading={checkingEligibility}
-                    style={{ width: '100%', height: '42px', marginTop: '8px' }}
+                    style={{ width: "100%", height: "42px", marginTop: "8px" }}
                     icon={Search}
                   >
                     Check Return Eligibility
@@ -446,16 +491,44 @@ export default function NewReturnPortalPage() {
           ) : (
             /* Step 2: Select Items & Reasons */
             <div className="animate-fade-in">
-              <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  marginBottom: "24px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <div>
-                  <h2 style={{ fontSize: '22px', fontWeight: 500, color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
+                  <h2
+                    style={{
+                      fontSize: "22px",
+                      fontWeight: 500,
+                      color: "var(--color-text-primary)",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
                     Select Items to Return
                   </h2>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px', marginTop: '2px' }}>
-                    Order: <strong style={{ color: 'var(--color-text-primary)' }}>{eligibilityData.orderNumber}</strong> ({eligibilityData.customerName})
+                  <p
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      fontSize: "13px",
+                      marginTop: "2px",
+                    }}
+                  >
+                    Order:{" "}
+                    <strong style={{ color: "var(--color-text-primary)" }}>
+                      {eligibilityData.orderNumber}
+                    </strong>{" "}
+                    ({eligibilityData.customerName})
                   </p>
                 </div>
-                <Button variant="secondary" size="sm" onClick={() => setEligibilityData(null)}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setEligibilityData(null)}
+                >
                   Change Order
                 </Button>
               </div>
@@ -463,73 +536,217 @@ export default function NewReturnPortalPage() {
               <form onSubmit={handleSubmitReturn}>
                 <div
                   style={{
-                    backgroundColor: 'var(--color-bg)',
-                    border: '1px solid var(--color-border-subtle)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                    backgroundColor: "var(--color-bg)",
+                    border: "1px solid var(--color-border-subtle)",
+                    borderRadius: "12px",
+                    padding: "24px",
+                    marginBottom: "20px",
+                    boxShadow: "0 2px 12px rgba(25, 52, 56, 0.04)",
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
                     {eligibilityData.eligibleItems.map((item) => {
+                      const isReturnable = item.returnable !== false;
                       const isSelected = !!selectedItems[item.sku];
+                      const isAlreadyRequested = item.reason === "ALREADY_REQUESTED";
+
                       return (
                         <div
                           key={item.sku}
-                          onClick={() => toggleItem(item)}
+                          onClick={() => isReturnable && toggleItem(item)}
                           style={{
-                            padding: '14px 16px',
-                            borderRadius: '8px',
-                            border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border-subtle)'}`,
-                            backgroundColor: isSelected ? 'var(--color-accent-soft)' : 'var(--color-bg)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
+                            padding: "14px 16px",
+                            borderRadius: "8px",
+                            border: `1px solid ${
+                              !isReturnable
+                                ? "var(--color-border-subtle)"
+                                : isSelected
+                                ? "var(--color-primary)"
+                                : "var(--color-border-subtle)"
+                            }`,
+                            backgroundColor: !isReturnable
+                              ? "var(--color-bg-subtle)"
+                              : isSelected
+                              ? "var(--color-accent-soft)"
+                              : "var(--color-bg)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            cursor: isReturnable ? "pointer" : "not-allowed",
+                            opacity: isReturnable ? 1 : 0.75,
+                            transition: "all 0.15s ease",
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                            }}
+                          >
                             <div
                               style={{
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '4px',
-                                border: `1.5px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border-strong)'}`,
-                                backgroundColor: isSelected ? 'var(--color-primary)' : 'transparent',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
+                                width: "20px",
+                                height: "20px",
+                                borderRadius: "4px",
+                                border: `1.5px solid ${
+                                  !isReturnable
+                                    ? "var(--color-border-subtle)"
+                                    : isSelected
+                                    ? "var(--color-primary)"
+                                    : "var(--color-border-strong)"
+                                }`,
+                                backgroundColor: !isReturnable
+                                  ? "var(--color-bg-muted)"
+                                  : isSelected
+                                  ? "var(--color-primary)"
+                                  : "transparent",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
                               }}
                             >
-                              {isSelected && <CheckCircle2 size={13} color="#ffffff" />}
+                              {isSelected && (
+                                <CheckCircle2 size={13} color="#ffffff" />
+                              )}
+                              {!isReturnable && (
+                                <span style={{ fontSize: "10px", color: "var(--color-text-muted)" }}>✕</span>
+                              )}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 500, fontSize: '14px', color: 'var(--color-text-primary)' }}>{item.name}</div>
-                              <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>
-                                SKU: {item.sku} • Purchased: {item.quantity}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  flexWrap: "wrap",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontWeight: 500,
+                                    fontSize: "14px",
+                                    color: isReturnable
+                                      ? "var(--color-text-primary)"
+                                      : "var(--color-text-secondary)",
+                                  }}
+                                >
+                                  {item.name}
+                                </span>
+                                {!isReturnable && (
+                                  <span
+                                    style={{
+                                      fontSize: "11px",
+                                      padding: "2px 8px",
+                                      borderRadius: "12px",
+                                      backgroundColor: isAlreadyRequested
+                                        ? "rgba(99, 102, 241, 0.12)"
+                                        : "rgba(239, 68, 68, 0.1)",
+                                      color: isAlreadyRequested
+                                        ? "var(--color-primary)"
+                                        : "var(--color-error)",
+                                      fontWeight: 600,
+                                      letterSpacing: "0.02em",
+                                    }}
+                                  >
+                                    {isAlreadyRequested
+                                      ? `Return Active (${item.existingReturnStatus || "PENDING"})`
+                                      : "Non-Returnable"}
+                                  </span>
+                                )}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "12px",
+                                  color: "var(--color-text-tertiary)",
+                                  marginTop: "2px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                }}
+                              >
+                                <span>SKU: {item.sku} • Purchased: {item.quantity}</span>
+                                {item.existingTrackingToken && (
+                                  <Link
+                                    href={`/track/${item.existingTrackingToken}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      color: "var(--color-primary)",
+                                      textDecoration: "underline",
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    Track return →
+                                  </Link>
+                                )}
                               </div>
                             </div>
                           </div>
-                          <div style={{ fontWeight: 500, fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                          <div
+                            style={{
+                              fontWeight: 500,
+                              fontSize: "14px",
+                              color: isReturnable
+                                ? "var(--color-text-primary)"
+                                : "var(--color-text-muted)",
+                            }}
+                          >
                             ${item.price.toFixed(2)}
                           </div>
                         </div>
                       );
                     })}
                   </div>
+
+                  {!eligibilityData.eligibleItems.some((i) => i.returnable !== false) && (
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderRadius: "8px",
+                        backgroundColor: "var(--color-bg-muted)",
+                        border: "1px solid var(--color-border-subtle)",
+                        marginTop: "16px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "14px",
+                          color: "var(--color-text-primary)",
+                          fontWeight: 500,
+                          margin: "0 0 10px 0",
+                        }}
+                      >
+                        All items in this order have already been submitted for return or are non-returnable.
+                      </p>
+                      {eligibilityData.existingReturns?.[0]?.trackingToken && (
+                        <Link href={`/track/${eligibilityData.existingReturns[0].trackingToken}`}>
+                          <Button variant="primary" size="sm">
+                            Track Existing Return Status
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Return Reason Selection */}
-                <div
+                {eligibilityData.eligibleItems.some((i) => i.returnable !== false) && (
+                  <>
+                    <div
                   style={{
-                    backgroundColor: 'var(--color-bg)',
-                    border: '1px solid var(--color-border-subtle)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
+                    backgroundColor: "var(--color-bg)",
+                    border: "1px solid var(--color-border-subtle)",
+                    borderRadius: "12px",
+                    padding: "24px",
+                    marginBottom: "20px",
+                    boxShadow: "0 2px 12px rgba(25, 52, 56, 0.04)",
                   }}
                 >
                   <div className="form-group">
@@ -544,7 +761,7 @@ export default function NewReturnPortalPage() {
                     >
                       {RETURN_REASONS.map((r) => (
                         <option key={r} value={r}>
-                          {r.replace(/_/g, ' ')}
+                          {r.replace(/_/g, " ")}
                         </option>
                       ))}
                     </select>
@@ -565,142 +782,34 @@ export default function NewReturnPortalPage() {
                   </div>
                 </div>
 
-                {/* Photo Evidence Section (Before submitting return request) */}
-                <div
-                  style={{
-                    backgroundColor: 'var(--color-bg)',
-                    border: '1px solid var(--color-border-subtle)',
-                    borderRadius: '12px',
-                    padding: '24px',
-                    marginBottom: '20px',
-                    boxShadow: '0 2px 12px rgba(25, 52, 56, 0.04)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Camera size={18} color="var(--color-primary)" />
-                      <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                        Photo Evidence & Item Condition
-                      </h3>
-                    </div>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        backgroundColor: 'var(--color-bg-muted)',
-                        color: 'var(--color-text-muted)',
-                      }}
-                    >
-                      Optional
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
-                    Upload clear photos of the item, tags, or damage to speed up merchant review and approval (JPG, PNG, WebP up to 5MB).
-                  </p>
-
-                  {/* Previews if any */}
-                  {photoFiles.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                      {photoFiles.map((item, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            position: 'relative',
-                            width: '100%',
-                            aspectRatio: '1',
-                            borderRadius: '8px',
-                            overflow: 'hidden',
-                            border: '1px solid var(--color-border-subtle)',
-                            backgroundColor: 'var(--color-bg-muted)',
-                          }}
-                        >
-                          <img
-                            src={item.previewUrl}
-                            alt={`Evidence preview ${idx + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePhoto(idx)}
-                            style={{
-                              position: 'absolute',
-                              top: '4px',
-                              right: '4px',
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: '50%',
-                              backgroundColor: 'rgba(0,0,0,0.6)',
-                              color: '#ffffff',
-                              border: 'none',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                            }}
-                            title="Remove photo"
-                          >
-                            <X size={13} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add Photos Button / Input */}
-                  <label
-                    style={{
-                      border: '1.5px dashed var(--color-border-subtle)',
-                      borderRadius: '8px',
-                      padding: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      cursor: 'pointer',
-                      backgroundColor: 'var(--color-bg-muted)',
-                      transition: 'background-color 0.15s ease',
-                    }}
-                  >
-                    <Upload size={18} color="var(--color-primary)" />
-                    <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
-                      {photoFiles.length > 0 ? 'Add More Photos' : 'Click to Upload Condition Photos'}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      onChange={handleAddPhotos}
-                      style={{ display: 'none' }}
-                    />
-                  </label>
-                </div>
-
                 {submitError && (
                   <div
                     style={{
-                      padding: '12px 14px',
-                      backgroundColor: 'var(--color-error-soft)',
-                      border: '1px solid var(--color-error)',
-                      borderRadius: '8px',
-                      color: 'var(--color-error)',
-                      fontSize: '13px',
-                      marginBottom: '20px',
+                      padding: "12px 14px",
+                      backgroundColor: "var(--color-error-soft)",
+                      border: "1px solid var(--color-error)",
+                      borderRadius: "8px",
+                      color: "var(--color-error)",
+                      fontSize: "13px",
+                      marginBottom: "20px",
                     }}
                   >
                     {submitError}
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  loading={submitting}
-                  style={{ width: '100%', height: '44px' }}
-                  icon={submitting ? Loader2 : ArrowRight}
-                >
-                  {uploadStatusText || 'Submit Return Request'}
-                </Button>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      loading={submitting}
+                      disabled={submitting || Object.keys(selectedItems).length === 0}
+                      style={{ width: "100%", height: "44px" }}
+                      icon={submitting ? Loader2 : ArrowRight}
+                    >
+                      Submit Return Request
+                    </Button>
+                  </>
+                )}
               </form>
             </div>
           )}
